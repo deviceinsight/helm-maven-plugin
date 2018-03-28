@@ -1,0 +1,35 @@
+image: docker-proxy.device-insight.com/library/maven:alpine
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+services:
+  - docker:stable-dind
+
+mvn_test_job:
+  stage: build
+  script: >
+    mvn clean install -B
+  artifacts:
+    paths:
+    - target/*.log
+    when: on_failure
+    expire_in: 1 week
+  except:
+    - master
+  tags:
+    - dind
+
+mvn_deploy_job:
+  stage: build
+  script: >
+    mvn clean deploy -B
+  artifacts:
+    paths:
+    - target/*.log
+    when: on_failure
+    expire_in: 1 week
+  only:
+    - master
+  tags:
+    - dind

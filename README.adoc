@@ -1,0 +1,11 @@
+= Releasing
+
+Creating a new release involves the following steps:
+
+. `mvn -DenableSshAgent=true jgitflow:release-start jgitflow:release-finish` +
+[NOTE]
+The `-DenableSshAgent=true` is only necessary, if you cloned the repository via SSH.
+. `git push origin master`
+. `git push --tags`
+. `git push origin develop`
+
