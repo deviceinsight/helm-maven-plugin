@@ -11,7 +11,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<jackson.version>2.9.1</jackson.version>
-		<kotlin.version>1.2.10</kotlin.version>
+		<kotlin.version>1.2.30</kotlin.version>
 		<jgitflow-maven-plugin.version>1.0-m5.1</jgitflow-maven-plugin.version>
 	</properties>
 
@@ -79,6 +79,17 @@
 			<artifactId>kotlin-test</artifactId>
 			<version>${kotlin.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.kittinunf.fuel</groupId>
+			<artifactId>fuel</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.kittinunf.result</groupId>
+			<artifactId>result</artifactId>
+			<version>1.0.2</version>
 		</dependency>
 
 	</dependencies>
