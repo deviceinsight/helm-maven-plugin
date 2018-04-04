@@ -1,4 +1,4 @@
-package com.deviceinsight
+package com.deviceinsight.helmdeploymavenplugin
 
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
@@ -38,26 +38,12 @@ class HelmPackageMojo : AbstractMojo() {
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
 
-
 		try {
 
 			val targetHelmDir = File(target(), chartName)
 			targetHelmDir.mkdirs()
 
-			File("src/main/helm").walkTopDown().filter { it.isFile }.forEach { file ->
-				val fileContents = file.readText()
-				val updatedFileContents = Regex("\\$\\{(.*)}").replace(fileContents) { matchResult ->
-					val property = matchResult.groupValues[1]
-					val propertyValue = findPropertyValue(property)
-
-					when (propertyValue) {
-						null -> matchResult.groupValues[0] + "!!!"
-						else -> propertyValue
-					}
-				}
-
-				targetHelmDir.resolve(file.name).writeText(updatedFileContents)
-			}
+			processHelmConfigFiles(targetHelmDir)
 
 			executeCmd("$helmBinary dependency update", directory = targetHelmDir)
 			executeCmd("$helmBinary package $chartName")
@@ -70,13 +56,46 @@ class HelmPackageMojo : AbstractMojo() {
 		}
 	}
 
+	private fun processHelmConfigFiles(targetHelmDir: File) {
+		File("src/main/helm").walkTopDown().filter { it.isFile }.forEach { file ->
+			val fileContents = file.readText()
+			val updatedFileContents = Regex("\\$\\{(.*)}").replace(fileContents) { matchResult ->
+				val property = matchResult.groupValues[1]
+				val propertyValue = findPropertyValue(property)
+
+				when (propertyValue) {
+					null -> matchResult.groupValues[0] + "!!!"
+					else -> propertyValue
+				}
+			}
+
+			targetHelmDir.resolve(file.name).writeText(updatedFileContents)
+		}
+	}
+
 	private fun publishToRepo() {
+
+		ensureChartFileExists()
+
+		if (isSnapshotVersion()) {
+			removeChartIfExists()
+		}
+
+		publishChart()
+	}
+
+	private fun ensureChartFileExists() {
 
 		val chartTarGzFile = chartTarGzFile()
 
 		if (!chartTarGzFile.exists()) {
 			throw RuntimeException("File ${chartTarGzFile.absolutePath} not found")
 		}
+	}
+
+	private fun publishChart() {
+
+		val chartTarGzFile = chartTarGzFile()
 
 		val url = "$chartRepoUrl/api/charts"
 
@@ -94,7 +113,11 @@ class HelmPackageMojo : AbstractMojo() {
 		}
 	}
 
-	private fun chartTarGzFile() = target().resolve("$chartName-${helmVersion()}.tgz")
+	private fun removeChartIfExists() {
+		Fuel.delete("$chartRepoUrl/api/charts/$chartName/${project.version}").responseString()
+	}
+
+	private fun chartTarGzFile() = target().resolve("$chartName-${project.version}.tgz")
 
 	private fun executeCmd(cmd: String, directory: File = target()) {
 		val proc = ProcessBuilder(cmd.split(" "))
@@ -115,12 +138,12 @@ class HelmPackageMojo : AbstractMojo() {
 	private fun target() = File(project.build.directory)
 
 	private fun findPropertyValue(property: String): CharSequence? {
-		if (property == "project.version") {
-			return helmVersion()
+		return when (property) {
+			"project.version" -> project.version
+			"artifactId" -> project.artifactId
+			else -> project.properties.getProperty(property)
 		}
-
-		return project.properties.getProperty(property)
 	}
 
-	private fun helmVersion() = if (project.version.contains("SNAPSHOT")) "latest" else project.version
+	private fun isSnapshotVersion() = project.version.contains("SNAPSHOT")
 }
