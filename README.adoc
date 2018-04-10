@@ -34,7 +34,8 @@ Add the following to your `pom.xml`
 
 |chartName |The Maven `artifactId` |The name of the chart
 |chartRepoUrl |None| The URL of the Chart Museum where charts should be published to
-|helmBinary | "helm" |The helm binary to execute. By default assumes that helm is on the path.
+|helmBinary |"helm" |The helm binary to execute. By default assumes that helm is on the path.
+|helmBinaryFetchUrl |None |Alternatively to specifying a local helm binary via the 'helmBinary' property. Note, that you cannot specify both 'helmBinary' and 'helmBinaryFetchUrl'
 
 |===
 
