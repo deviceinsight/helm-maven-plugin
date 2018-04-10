@@ -1,3 +1,43 @@
+= Usage
+
+Add the following to your `pom.xml`
+
+....
+<build>
+  <plugins>
+    ...
+    <plugin>
+      <groupId>com.deviceinsight.helm</groupId>
+      <artifactId>helm-deploy-maven-plugin</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <configuration>
+        <chartName>sth-project</chartName>
+        <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
+      </configuration>
+      <executions>
+        <execution>
+          <goals>
+            <goal>helm-package</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+
+....
+
+== Configuration
+
+|===
+|Property |Default |Description
+
+|chartName |The Maven `artifactId` |The name of the chart
+|chartRepoUrl |None| The URL of the Chart Museum where charts should be published to
+|helmBinary | "helm" |The helm binary to execute. By default assumes that helm is on the path.
+
+|===
+
 = Releasing
 
 Creating a new release involves the following steps:

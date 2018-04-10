@@ -11,26 +11,29 @@ import org.apache.maven.project.MavenProject
 import java.io.File
 
 /**
- * Packages helm charts
+ * Packages and publishes helm charts
  */
-// TODO: Change to deploy?
+//@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.DEPLOY)
 @Mojo(name = "helm-package", defaultPhase = LifecyclePhase.PACKAGE)
 class HelmPackageMojo : AbstractMojo() {
 
 	/**
 	 * Name of the chart
 	 */
-	@Parameter(property = "chartName", required = true)
-	private lateinit var chartName: String
+	@Parameter(property = "chartName", required = false)
+	private var chartName: String? = null
 
 	@Parameter(property = "chartRepoUrl", required = true)
 	private lateinit var chartRepoUrl: String
 
 	/**
-	 * The path tp the helm command line client, defaults to `helm`.
+	 * The path to the helm command line client, defaults to `helm`.
 	 */
 	@Parameter(property = "helmBinary", required = false)
-	private var helmBinary: String = "helm"
+	private var helmBinary: String? = null
+
+	@Parameter(property = "helmBinaryFetchUrl", required = false)
+	private var helmBinaryFetchUrl: String? = null
 
 	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
 	private lateinit var project: MavenProject
@@ -40,31 +43,58 @@ class HelmPackageMojo : AbstractMojo() {
 
 		try {
 
-			val targetHelmDir = File(target(), chartName)
+			validateConfiguration()
+
+			val targetHelmDir = File(target(), chartName())
 			targetHelmDir.mkdirs()
 
 			processHelmConfigFiles(targetHelmDir)
 
-			executeCmd("$helmBinary dependency update", directory = targetHelmDir)
-			executeCmd("$helmBinary package $chartName")
+			val helm = determineHelmBinary()
+
+			executeCmd("$helm dependency update", directory = targetHelmDir)
+			executeCmd("$helm package ${chartName()}")
 
 			publishToRepo()
-
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error creating/publishing helm chart: ${e.message}", e)
 		}
 	}
 
+	private fun validateConfiguration() {
+		check(!(helmBinaryFetchUrl != null && helmBinary != null),
+				{ "Cannot set both 'helmBinaryFetchUrl' and 'helmBinary'" })
+	}
+
+	private fun determineHelmBinary(): String {
+
+		return helmBinaryFetchUrl?.let {
+			val helmTmpBinary = File.createTempFile("helm", "")
+			log.info("Downloading helm client from $helmBinaryFetchUrl")
+			Fuel.download(it).destination { _, _ -> helmTmpBinary }
+					.response { _, _, result -> if (result is Result.Failure) {
+						throw RuntimeException("Could not download helm binary from $helmBinaryFetchUrl")
+					} }.response()
+
+			log.info("Using downloaded helm client ${helmTmpBinary.absolutePath}")
+			helmTmpBinary.setExecutable(true)
+			return helmTmpBinary.absolutePath
+		} ?: (helmBinary ?: "helm")
+	}
+
 	private fun processHelmConfigFiles(targetHelmDir: File) {
-		File("src/main/helm").walkTopDown().filter { it.isFile }.forEach { file ->
+		val directory = "${project.basedir}/src/main/helm"
+		log.info("Processing helm files in directory $directory")
+		File(directory).walkTopDown().filter { it.isFile }.forEach { file ->
+			log.info("Copying and processing helm file ${file.absolutePath}")
 			val fileContents = file.readText()
 			val updatedFileContents = Regex("\\$\\{(.*)}").replace(fileContents) { matchResult ->
 				val property = matchResult.groupValues[1]
 				val propertyValue = findPropertyValue(property)
 
 				when (propertyValue) {
-					null -> matchResult.groupValues[0] + "!!!"
+					null -> matchResult.groupValues[0]
 					else -> propertyValue
 				}
 			}
@@ -114,21 +144,25 @@ class HelmPackageMojo : AbstractMojo() {
 	}
 
 	private fun removeChartIfExists() {
-		Fuel.delete("$chartRepoUrl/api/charts/$chartName/${project.version}").responseString()
+		Fuel.delete("$chartRepoUrl/api/charts/${chartName()}/${project.version}").responseString()
 	}
 
-	private fun chartTarGzFile() = target().resolve("$chartName-${project.version}.tgz")
+	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
 
 	private fun executeCmd(cmd: String, directory: File = target()) {
 		val proc = ProcessBuilder(cmd.split(" "))
 				.directory(directory)
-				.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-				.redirectError(ProcessBuilder.Redirect.INHERIT)
+				.redirectOutput(ProcessBuilder.Redirect.PIPE)
+				.redirectError(ProcessBuilder.Redirect.PIPE)
 				.start()
 
 		proc.waitFor()
 
-		log.info("Result was ${proc.exitValue()}")
+		log.info("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
+		log.info("Begin of output")
+		proc.inputStream.bufferedReader().lines().forEach { log.info("Output: $it") }
+		proc.errorStream.bufferedReader().lines().forEach { log.info("Output: $it") }
+		log.info("End of output")
 
 		if (proc.exitValue() != 0) {
 			throw RuntimeException("When executing '$cmd' got result code '${proc.exitValue()}'")
@@ -144,6 +178,8 @@ class HelmPackageMojo : AbstractMojo() {
 			else -> project.properties.getProperty(property)
 		}
 	}
+
+	private fun chartName() = chartName ?: project.artifactId
 
 	private fun isSnapshotVersion() = project.version.contains("SNAPSHOT")
 }
