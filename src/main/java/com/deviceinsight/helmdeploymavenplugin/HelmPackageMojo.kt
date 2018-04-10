@@ -1,7 +1,10 @@
 package com.deviceinsight.helmdeploymavenplugin
 
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.result.Result
+import org.apache.http.client.methods.HttpDelete
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.FileEntity
+import org.apache.http.impl.client.HttpClients
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugins.annotations.LifecyclePhase
@@ -13,8 +16,7 @@ import java.io.File
 /**
  * Packages and publishes helm charts
  */
-//@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.DEPLOY)
-@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.DEPLOY)
 class HelmPackageMojo : AbstractMojo() {
 
 	/**
@@ -52,6 +54,7 @@ class HelmPackageMojo : AbstractMojo() {
 
 			val helm = determineHelmBinary()
 
+			executeCmd("$helm init --client-only")
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()}")
 
@@ -72,10 +75,18 @@ class HelmPackageMojo : AbstractMojo() {
 		return helmBinaryFetchUrl?.let {
 			val helmTmpBinary = File.createTempFile("helm", "")
 			log.info("Downloading helm client from $helmBinaryFetchUrl")
-			Fuel.download(it).destination { _, _ -> helmTmpBinary }
-					.response { _, _, result -> if (result is Result.Failure) {
-						throw RuntimeException("Could not download helm binary from $helmBinaryFetchUrl")
-					} }.response()
+
+			HttpClients.createDefault().use { httpClient ->
+				httpClient.execute(HttpGet(helmBinaryFetchUrl)).use { response ->
+					val statusCode = response.statusLine.statusCode
+					if (statusCode != 200) {
+						throw RuntimeException("Unexpected status code when downloading helm from $helmTmpBinary: $statusCode")
+					}
+					helmTmpBinary.outputStream().use {
+						response.entity.writeTo(it)
+					}
+				}
+			}
 
 			log.info("Using downloaded helm client ${helmTmpBinary.absolutePath}")
 			helmTmpBinary.setExecutable(true)
@@ -129,22 +140,29 @@ class HelmPackageMojo : AbstractMojo() {
 
 		val url = "$chartRepoUrl/api/charts"
 
-		val (_, response, result) = Fuel.post(url).body(chartTarGzFile.readBytes()).responseString()
-
-		when (result) {
-			is Result.Failure -> throw RuntimeException("Error posting to chart repo '$url': ${result.error.exception.message}")
-
-			else -> if (response.httpStatusCode in listOf(200, 201)) {
+		HttpClients.createDefault().use { httpClient ->
+			val httpPost = HttpPost(url).apply { entity = FileEntity(chartTarGzFile) }
+			httpClient.execute(httpPost).use { response ->
+				val statusCode = response.statusLine.statusCode
+				if (statusCode != 201) {
+					throw RuntimeException("Unexpected status code when POSTing to chart repo $url: $statusCode")
+				}
 				log.info("$chartTarGzFile posted successfully")
-			} else {
-				throw RuntimeException("There was an error POSTing $chartTarGzFile to $url. " +
-						"Result was HTTP ${response.httpStatusCode}: ${response.httpResponseMessage}")
 			}
 		}
 	}
 
 	private fun removeChartIfExists() {
-		Fuel.delete("$chartRepoUrl/api/charts/${chartName()}/${project.version}").responseString()
+
+		val url = "$chartRepoUrl/api/charts/${chartName()}/${project.version}"
+
+		HttpClients.createDefault().use { httpClient ->
+			httpClient.execute(HttpDelete(url)).use { response ->
+				if (response.statusLine.statusCode == 200) {
+					log.info("Existing chart removed successfully")
+				}
+			}
+		}
 	}
 
 	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
@@ -159,10 +177,8 @@ class HelmPackageMojo : AbstractMojo() {
 		proc.waitFor()
 
 		log.info("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
-		log.info("Begin of output")
 		proc.inputStream.bufferedReader().lines().forEach { log.info("Output: $it") }
 		proc.errorStream.bufferedReader().lines().forEach { log.info("Output: $it") }
-		log.info("End of output")
 
 		if (proc.exitValue() != 0) {
 			throw RuntimeException("When executing '$cmd' got result code '${proc.exitValue()}'")
