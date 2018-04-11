@@ -1,9 +1,14 @@
 package com.deviceinsight.helmdeploymavenplugin
 
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpDelete
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.FileEntity
+import org.apache.http.impl.client.BasicCredentialsProvider
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.impl.client.HttpClients
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
@@ -12,6 +17,8 @@ import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import java.io.File
+
+
 
 /**
  * Packages and publishes helm charts
@@ -27,6 +34,12 @@ class HelmPackageMojo : AbstractMojo() {
 
 	@Parameter(property = "chartRepoUrl", required = true)
 	private lateinit var chartRepoUrl: String
+
+	@Parameter(property = "chartRepoUsername", required = false)
+	private var chartRepoUsername: String? = null
+
+	@Parameter(property = "chartRepoPassword", required = false)
+	private var chartRepoPassword: String? = null
 
 	/**
 	 * The path to the helm command line client, defaults to `helm`.
@@ -140,7 +153,7 @@ class HelmPackageMojo : AbstractMojo() {
 
 		val url = "$chartRepoUrl/api/charts"
 
-		HttpClients.createDefault().use { httpClient ->
+		createChartRepoClient().use { httpClient ->
 			val httpPost = HttpPost(url).apply { entity = FileEntity(chartTarGzFile) }
 			httpClient.execute(httpPost).use { response ->
 				val statusCode = response.statusLine.statusCode
@@ -156,7 +169,7 @@ class HelmPackageMojo : AbstractMojo() {
 
 		val url = "$chartRepoUrl/api/charts/${chartName()}/${project.version}"
 
-		HttpClients.createDefault().use { httpClient ->
+		createChartRepoClient().use { httpClient ->
 			httpClient.execute(HttpDelete(url)).use { response ->
 				if (response.statusLine.statusCode == 200) {
 					log.info("Existing chart removed successfully")
@@ -164,8 +177,6 @@ class HelmPackageMojo : AbstractMojo() {
 			}
 		}
 	}
-
-	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
 
 	private fun executeCmd(cmd: String, directory: File = target()) {
 		val proc = ProcessBuilder(cmd.split(" "))
@@ -185,7 +196,16 @@ class HelmPackageMojo : AbstractMojo() {
 		}
 	}
 
-	private fun target() = File(project.build.directory)
+	private fun createChartRepoClient(): CloseableHttpClient {
+		val clientBuilder = HttpClientBuilder.create()
+
+		if (chartRepoUsername != null && chartRepoPassword != null) {
+			clientBuilder.setDefaultCredentialsProvider(BasicCredentialsProvider().apply { setCredentials(AuthScope.ANY, UsernamePasswordCredentials(chartRepoUsername, chartRepoPassword)) })
+		}
+
+		return clientBuilder.build()
+
+	}
 
 	private fun findPropertyValue(property: String): CharSequence? {
 		return when (property) {
@@ -194,6 +214,10 @@ class HelmPackageMojo : AbstractMojo() {
 			else -> project.properties.getProperty(property)
 		}
 	}
+
+	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
+
+	private fun target() = File(project.build.directory)
 
 	private fun chartName() = chartName ?: project.artifactId
 
