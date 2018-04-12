@@ -109,10 +109,10 @@ class HelmPackageMojo : AbstractMojo() {
 	}
 
 	private fun processHelmConfigFiles(targetHelmDir: File) {
-		val directory = "${project.basedir}/src/main/helm"
-		log.info("Processing helm files in directory $directory")
-		File(directory).walkTopDown().filter { it.isFile }.forEach { file ->
-			log.info("Copying and processing helm file ${file.absolutePath}")
+		val directory = File("${project.basedir}/src/main/helm/${chartName()}")
+		log.info("Processing helm files in directory ${directory.absolutePath}")
+		directory.walkTopDown().filter { it.isFile }.forEach { file ->
+			log.info("Processing helm file ${file.absolutePath}")
 			val fileContents = file.readText()
 			val updatedFileContents = Regex("\\$\\{(.*)}").replace(fileContents) { matchResult ->
 				val property = matchResult.groupValues[1]
@@ -124,7 +124,12 @@ class HelmPackageMojo : AbstractMojo() {
 				}
 			}
 
-			targetHelmDir.resolve(file.name).writeText(updatedFileContents)
+			val targetFile = targetHelmDir.resolve(file.toRelativeString(directory))
+			log.info("Copying to ${targetFile.absolutePath}")
+			targetFile.apply {
+				parentFile.mkdirs()
+				writeText(updatedFileContents)
+			}
 		}
 	}
 
