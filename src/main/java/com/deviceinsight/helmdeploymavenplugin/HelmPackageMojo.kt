@@ -19,7 +19,6 @@ import org.apache.maven.project.MavenProject
 import java.io.File
 
 
-
 /**
  * Packages and publishes helm charts
  */
@@ -61,6 +60,11 @@ class HelmPackageMojo : AbstractMojo() {
 			validateConfiguration()
 
 			val targetHelmDir = File(target(), chartName())
+
+			log.info("Clear target directory to ensure clean target package")
+			if (targetHelmDir.exists()) {
+				targetHelmDir.deleteRecursively()
+			}
 			targetHelmDir.mkdirs()
 
 			processHelmConfigFiles(targetHelmDir)
@@ -81,7 +85,7 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun validateConfiguration() {
 		check(!(helmBinaryFetchUrl != null && helmBinary != null),
-				{ "Cannot set both 'helmBinaryFetchUrl' and 'helmBinary'" })
+			{ "Cannot set both 'helmBinaryFetchUrl' and 'helmBinary'" })
 	}
 
 	private fun determineHelmBinary(): String {
@@ -186,10 +190,10 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun executeCmd(cmd: String, directory: File = target()) {
 		val proc = ProcessBuilder(cmd.split(" "))
-				.directory(directory)
-				.redirectOutput(ProcessBuilder.Redirect.PIPE)
-				.redirectError(ProcessBuilder.Redirect.PIPE)
-				.start()
+			.directory(directory)
+			.redirectOutput(ProcessBuilder.Redirect.PIPE)
+			.redirectError(ProcessBuilder.Redirect.PIPE)
+			.start()
 
 		proc.waitFor()
 
@@ -206,7 +210,12 @@ class HelmPackageMojo : AbstractMojo() {
 		val clientBuilder = HttpClientBuilder.create()
 
 		if (chartRepoUsername != null && chartRepoPassword != null) {
-			clientBuilder.setDefaultCredentialsProvider(BasicCredentialsProvider().apply { setCredentials(AuthScope.ANY, UsernamePasswordCredentials(chartRepoUsername, chartRepoPassword)) })
+			clientBuilder.setDefaultCredentialsProvider(BasicCredentialsProvider().apply {
+				setCredentials(
+					AuthScope.ANY,
+					UsernamePasswordCredentials(chartRepoUsername, chartRepoPassword)
+				)
+			})
 		}
 
 		return clientBuilder.build()
