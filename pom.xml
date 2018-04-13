@@ -4,14 +4,14 @@
 
 	<groupId>com.deviceinsight.helm</groupId>
 	<artifactId>helm-deploy-maven-plugin</artifactId>
-	<version>1.5</version>
+	<version>1.6</version>
 	<packaging>maven-plugin</packaging>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<jackson.version>2.9.1</jackson.version>
-		<kotlin.version>1.2.30</kotlin.version>
+		<kotlin.version>1.2.31</kotlin.version>
 		<jgitflow-maven-plugin.version>1.0-m5.1</jgitflow-maven-plugin.version>
 	</properties>
 
