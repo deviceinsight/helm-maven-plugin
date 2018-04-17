@@ -232,7 +232,7 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
 
-	private fun target() = File(project.build.directory)
+	private fun target() = File(project.build.directory).resolve("helm")
 
 	private fun chartName() = chartName ?: project.artifactId
 
