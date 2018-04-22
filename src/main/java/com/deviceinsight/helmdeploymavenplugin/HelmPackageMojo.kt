@@ -72,6 +72,7 @@ class HelmPackageMojo : AbstractMojo() {
 			val helm = determineHelmBinary()
 
 			executeCmd("$helm init --client-only")
+			executeCmd("$helm repo add chartRepo https://kubernetes-charts-incubator.storage.googleapis.com")
 			executeCmd("$helm repo add chartRepo $chartRepoUrl")
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()}")
