@@ -27,6 +27,35 @@ Add the following to your `pom.xml`
 
 ....
 
+In the same Maven module, put your helm charts into
+`src/main/helm/<chartName>`. In the `Chart.yaml`, you can
+use the `${artifactId}` and `${project.version}` Maven placeholders. You can also use Maven properties.
+
+An example for a `Chart.yaml` is:
+
+....
+apiVersion: v1
+description: A Helm chart installing Rubicon
+name: ${artifactId}
+version: ${project.version}
+home: https://gitlab.device-insight.com/deviceinsight/rubicon
+maintainers:
+  - name: Device Insight
+    url: https://www.device-insight.com
+....
+
+You probably also will adjust the `templates/deployment.yaml` so
+that the correct docker image is used. An example snippet:
+
+....
+[...]
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}/rubicon:${project.version}"
+
+[...]
+....
+
 == Configuration
 
 |===
