@@ -49,6 +49,9 @@ class HelmPackageMojo : AbstractMojo() {
 	@Parameter(property = "helmBinaryFetchUrl", required = false)
 	private var helmBinaryFetchUrl: String? = null
 
+	@Parameter(property = "chartFolder", required = false)
+	private var chartFolder: String? = null
+
 	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
 	private lateinit var project: MavenProject
 
@@ -114,7 +117,7 @@ class HelmPackageMojo : AbstractMojo() {
 	}
 
 	private fun processHelmConfigFiles(targetHelmDir: File) {
-		val directory = File("${project.basedir}/src/main/helm/${chartName()}")
+		val directory = File("${project.basedir}/${chartFolder()}")
 		log.info("Processing helm files in directory ${directory.absolutePath}")
 		directory.walkTopDown().filter { it.isFile }.forEach { file ->
 			log.info("Processing helm file ${file.absolutePath}")
@@ -137,6 +140,8 @@ class HelmPackageMojo : AbstractMojo() {
 			}
 		}
 	}
+
+	private fun chartFolder() = chartFolder ?: "src/main/helm/${chartName()}"
 
 	private fun publishToRepo() {
 
