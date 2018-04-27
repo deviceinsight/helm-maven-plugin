@@ -69,6 +69,7 @@ that the correct docker image is used. An example snippet:
 |helmBinaryFetchUrl |None |Alternatively to specifying a local helm binary via the 'helmBinary' property. Note, that you cannot specify both 'helmBinary' and 'helmBinaryFetchUrl'
 |chartFolder |"src/main/helm/<chartName>" |The location of the
 chart files (e.g. Chart.yaml).
+|skipSnapshots |true |If true, SNAPSHOT versions will not be built and deployed.
 
 |===
 
