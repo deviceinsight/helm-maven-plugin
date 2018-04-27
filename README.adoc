@@ -9,7 +9,7 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-deploy-maven-plugin</artifactId>
-      <version>1.1</version>
+      <version>1.9</version>
       <configuration>
         <chartName>sth-project</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
@@ -27,6 +27,35 @@ Add the following to your `pom.xml`
 
 ....
 
+In the same Maven module, put your helm charts into
+`src/main/helm/<chartName>`. In the `Chart.yaml`, you can
+use the `${artifactId}` and `${project.version}` Maven placeholders. You can also use Maven properties.
+
+An example for a `Chart.yaml` is:
+
+....
+apiVersion: v1
+description: A Helm chart installing Rubicon
+name: ${artifactId}
+version: ${project.version}
+home: https://gitlab.device-insight.com/deviceinsight/rubicon
+maintainers:
+  - name: Device Insight
+    url: https://www.device-insight.com
+....
+
+You probably also will adjust the `templates/deployment.yaml` so
+that the correct docker image is used. An example snippet:
+
+....
+[...]
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}/rubicon:${project.version}"
+
+[...]
+....
+
 == Configuration
 
 |===
@@ -38,6 +67,9 @@ Add the following to your `pom.xml`
 |chartRepoPassword |None |The password for basic authentication against the chart repo
 |helmBinary |"helm" |The helm binary to execute. By default assumes that helm is on the path.
 |helmBinaryFetchUrl |None |Alternatively to specifying a local helm binary via the 'helmBinary' property. Note, that you cannot specify both 'helmBinary' and 'helmBinaryFetchUrl'
+|chartFolder |"src/main/helm/<chartName>" |The location of the
+chart files (e.g. Chart.yaml).
+|skipSnapshots |true |If true, SNAPSHOT versions will not be built and deployed.
 
 |===
 

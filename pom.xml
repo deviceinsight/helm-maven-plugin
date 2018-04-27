@@ -4,7 +4,7 @@
 
 	<groupId>com.deviceinsight.helm</groupId>
 	<artifactId>helm-deploy-maven-plugin</artifactId>
-	<version>1.9</version>
+	<version>1.10</version>
 	<packaging>maven-plugin</packaging>
 
 	<properties>
