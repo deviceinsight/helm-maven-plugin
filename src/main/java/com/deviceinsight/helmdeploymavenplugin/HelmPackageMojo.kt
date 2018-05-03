@@ -66,7 +66,7 @@ class HelmPackageMojo : AbstractMojo() {
 			validateConfiguration()
 
 			if (skipSnapshots && isSnapshotVersion()) {
-				log.info("Version contains SNAPSHOT and 'skipSnapshot' option is enabled. Not doing anything.")
+				log.info("Version contains SNAPSHOT and 'skipSnapshots' option is enabled. Not doing anything.")
 				return
 			}
 
