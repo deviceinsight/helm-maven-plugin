@@ -55,6 +55,9 @@ class HelmPackageMojo : AbstractMojo() {
 	@Parameter(property = "skipSnapshots", required = false, defaultValue = "true")
 	private var skipSnapshots: Boolean = true
 
+	@Parameter(property = "skipPublishing", required = false, defaultValue = "false")
+	private var skipPublishing: Boolean = false
+
 	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
 	private lateinit var project: MavenProject
 
@@ -66,7 +69,7 @@ class HelmPackageMojo : AbstractMojo() {
 			validateConfiguration()
 
 			if (skipSnapshots && isSnapshotVersion()) {
-				log.info("Version contains SNAPSHOT and 'skipSnapshot' option is enabled. Not doing anything.")
+				log.info("Version contains SNAPSHOT and 'skipSnapshots' option is enabled. Not doing anything.")
 				return
 			}
 
@@ -77,6 +80,7 @@ class HelmPackageMojo : AbstractMojo() {
 				targetHelmDir.deleteRecursively()
 			}
 			targetHelmDir.mkdirs()
+			log.info("Created target helm directory")
 
 			processHelmConfigFiles(targetHelmDir)
 
@@ -88,7 +92,9 @@ class HelmPackageMojo : AbstractMojo() {
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()}")
 
-			publishToRepo()
+			if (!skipPublishing) {
+				publishToRepo()
+			}
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error creating/publishing helm chart: ${e.message}", e)
@@ -127,7 +133,7 @@ class HelmPackageMojo : AbstractMojo() {
 	private fun processHelmConfigFiles(targetHelmDir: File) {
 		val directory = File("${project.basedir}/${chartFolder()}")
 		log.info("Processing helm files in directory ${directory.absolutePath}")
-		directory.walkTopDown().filter { it.isFile }.forEach { file ->
+		val processedFiles = directory.walkTopDown().filter { it.isFile }.onEach { file ->
 			log.info("Processing helm file ${file.absolutePath}")
 			val fileContents = file.readText()
 			val updatedFileContents = Regex("\\$\\{(.*)}").replace(fileContents) { matchResult ->
@@ -146,6 +152,10 @@ class HelmPackageMojo : AbstractMojo() {
 				parentFile.mkdirs()
 				writeText(updatedFileContents)
 			}
+		}.toList()
+
+		if (processedFiles.isEmpty()) {
+			throw IllegalStateException("No helm files found in ${directory.absolutePath}")
 		}
 	}
 
