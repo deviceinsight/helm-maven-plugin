@@ -1,14 +1,6 @@
 package com.deviceinsight.helmdeploymavenplugin
 
-import org.apache.http.auth.AuthScope
-import org.apache.http.auth.UsernamePasswordCredentials
-import org.apache.http.client.methods.HttpDelete
 import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.FileEntity
-import org.apache.http.impl.client.BasicCredentialsProvider
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.impl.client.HttpClients
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
@@ -20,9 +12,9 @@ import java.io.File
 
 
 /**
- * Packages and publishes helm charts
+ * Packages helm charts
  */
-@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.DEPLOY)
+@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.PACKAGE)
 class HelmPackageMojo : AbstractMojo() {
 
 	/**
@@ -33,12 +25,6 @@ class HelmPackageMojo : AbstractMojo() {
 
 	@Parameter(property = "chartRepoUrl", required = true)
 	private lateinit var chartRepoUrl: String
-
-	@Parameter(property = "chartRepoUsername", required = false)
-	private var chartRepoUsername: String? = null
-
-	@Parameter(property = "chartRepoPassword", required = false)
-	private var chartRepoPassword: String? = null
 
 	/**
 	 * The path to the helm command line client, defaults to `helm`.
@@ -52,12 +38,6 @@ class HelmPackageMojo : AbstractMojo() {
 	@Parameter(property = "chartFolder", required = false)
 	private var chartFolder: String? = null
 
-	@Parameter(property = "skipSnapshots", required = false, defaultValue = "true")
-	private var skipSnapshots: Boolean = true
-
-	@Parameter(property = "skipPublishing", required = false, defaultValue = "false")
-	private var skipPublishing: Boolean = false
-
 	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
 	private lateinit var project: MavenProject
 
@@ -67,11 +47,6 @@ class HelmPackageMojo : AbstractMojo() {
 		try {
 
 			validateConfiguration()
-
-			if (skipSnapshots && isSnapshotVersion()) {
-				log.info("Version contains SNAPSHOT and 'skipSnapshots' option is enabled. Not doing anything.")
-				return
-			}
 
 			val targetHelmDir = File(target(), chartName())
 
@@ -92,12 +67,8 @@ class HelmPackageMojo : AbstractMojo() {
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()}")
 
-			if (!skipPublishing) {
-				publishToRepo()
-			}
-
 		} catch (e: Exception) {
-			throw MojoExecutionException("Error creating/publishing helm chart: ${e.message}", e)
+			throw MojoExecutionException("Error creating helm chart: ${e.message}", e)
 		}
 	}
 
@@ -161,57 +132,6 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun chartFolder() = chartFolder ?: "src/main/helm/${chartName()}"
 
-	private fun publishToRepo() {
-
-		ensureChartFileExists()
-
-		if (isSnapshotVersion()) {
-			removeChartIfExists()
-		}
-
-		publishChart()
-	}
-
-	private fun ensureChartFileExists() {
-
-		val chartTarGzFile = chartTarGzFile()
-
-		if (!chartTarGzFile.exists()) {
-			throw RuntimeException("File ${chartTarGzFile.absolutePath} not found")
-		}
-	}
-
-	private fun publishChart() {
-
-		val chartTarGzFile = chartTarGzFile()
-
-		val url = "$chartRepoUrl/api/charts"
-
-		createChartRepoClient().use { httpClient ->
-			val httpPost = HttpPost(url).apply { entity = FileEntity(chartTarGzFile) }
-			httpClient.execute(httpPost).use { response ->
-				val statusCode = response.statusLine.statusCode
-				if (statusCode != 201) {
-					throw RuntimeException("Unexpected status code when POSTing to chart repo $url: $statusCode")
-				}
-				log.info("$chartTarGzFile posted successfully")
-			}
-		}
-	}
-
-	private fun removeChartIfExists() {
-
-		val url = "$chartRepoUrl/api/charts/${chartName()}/${project.version}"
-
-		createChartRepoClient().use { httpClient ->
-			httpClient.execute(HttpDelete(url)).use { response ->
-				if (response.statusLine.statusCode == 200) {
-					log.info("Existing chart removed successfully")
-				}
-			}
-		}
-	}
-
 	private fun executeCmd(cmd: String, directory: File = target()) {
 		val proc = ProcessBuilder(cmd.split(" "))
 			.directory(directory)
@@ -230,22 +150,6 @@ class HelmPackageMojo : AbstractMojo() {
 		}
 	}
 
-	private fun createChartRepoClient(): CloseableHttpClient {
-		val clientBuilder = HttpClientBuilder.create()
-
-		if (chartRepoUsername != null && chartRepoPassword != null) {
-			clientBuilder.setDefaultCredentialsProvider(BasicCredentialsProvider().apply {
-				setCredentials(
-					AuthScope.ANY,
-					UsernamePasswordCredentials(chartRepoUsername, chartRepoPassword)
-				)
-			})
-		}
-
-		return clientBuilder.build()
-
-	}
-
 	private fun findPropertyValue(property: String): CharSequence? {
 		return when (property) {
 			"project.version" -> project.version
@@ -253,8 +157,6 @@ class HelmPackageMojo : AbstractMojo() {
 			else -> project.properties.getProperty(property)
 		}
 	}
-
-	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
 
 	private fun target() = File(project.build.directory).resolve("helm")
 

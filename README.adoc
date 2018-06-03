@@ -9,7 +9,7 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-deploy-maven-plugin</artifactId>
-      <version>1.9</version>
+      <version>1.11</version>
       <configuration>
         <chartName>sth-project</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
@@ -18,6 +18,7 @@ Add the following to your `pom.xml`
         <execution>
           <goals>
             <goal>helm-package</goal>
+            <goal>helm-deploy</goal>
           </goals>
         </execution>
       </executions>
@@ -69,7 +70,7 @@ that the correct docker image is used. An example snippet:
 |helmBinaryFetchUrl |None |Alternatively to specifying a local helm binary via the 'helmBinary' property. Note, that you cannot specify both 'helmBinary' and 'helmBinaryFetchUrl'
 |chartFolder |"src/main/helm/<chartName>" |The location of the
 chart files (e.g. Chart.yaml).
-|skipSnapshots |true |If true, SNAPSHOT versions will not be built and deployed.
+|skipSnapshots |true |If true, SNAPSHOT versions will be built, but not deployed.
 
 |===
 
