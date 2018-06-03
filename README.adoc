@@ -9,7 +9,7 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-deploy-maven-plugin</artifactId>
-      <version>1.11</version>
+      <version>1.12</version>
       <configuration>
         <chartName>sth-project</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
