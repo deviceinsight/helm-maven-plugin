@@ -74,6 +74,14 @@ chart files (e.g. Chart.yaml).
 
 |===
 
+== Changelog
+
+* 1.12: Packaging and deploying have been split, so you have
+  to add `<goal>helm-deploy</goal>` to the `<goals>` section
+  of the configuration. Also, the `<skipPublishing>` option
+  has been removed, since the same result can be achieved
+  by omitting the `helm-deploy` goal from the `<goals>`.
+
 = Releasing
 
 Creating a new release involves the following steps:
