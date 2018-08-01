@@ -41,8 +41,16 @@ class HelmPackageMojo : AbstractMojo() {
 	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
 	private lateinit var project: MavenProject
 
+	@Parameter(property = "helm.skip", defaultValue = "false")
+	private var skip: Boolean = false
+
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
+
+		if (skip) {
+			log.info("helm-package has been skipped")
+			return
+		}
 
 		try {
 
@@ -134,10 +142,10 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun executeCmd(cmd: String, directory: File = target()) {
 		val proc = ProcessBuilder(cmd.split(" "))
-			.directory(directory)
-			.redirectOutput(ProcessBuilder.Redirect.PIPE)
-			.redirectError(ProcessBuilder.Redirect.PIPE)
-			.start()
+				.directory(directory)
+				.redirectOutput(ProcessBuilder.Redirect.PIPE)
+				.redirectError(ProcessBuilder.Redirect.PIPE)
+				.start()
 
 		proc.waitFor()
 
@@ -162,5 +170,4 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun chartName() = chartName ?: project.artifactId
 
-	private fun isSnapshotVersion() = project.version.contains("SNAPSHOT")
 }
