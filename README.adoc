@@ -71,10 +71,13 @@ that the correct docker image is used. An example snippet:
 |chartFolder |"src/main/helm/<chartName>" |The location of the
 chart files (e.g. Chart.yaml).
 |skipSnapshots |true |If true, SNAPSHOT versions will be built, but not deployed.
+|helm.skip |false |If true, execution will be skipped entirely
 
 |===
 
 == Changelog
+
+* 1.13: Introduced `helm.skip` property for skipping plugin execution.
 
 * 1.12: Packaging and deploying have been split, so you have
   to add `<goal>helm-deploy</goal>` to the `<goals>` section
