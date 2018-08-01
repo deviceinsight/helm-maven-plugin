@@ -44,8 +44,16 @@ class HelmDeployMojo : AbstractMojo() {
 	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
 	private lateinit var project: MavenProject
 
+	@Parameter(property = "helm.skip", defaultValue = "false")
+	private var skip: Boolean = false
+
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
+
+		if (skip) {
+			log.info("helm-deploy has been skipped")
+			return
+		}
 
 		try {
 
