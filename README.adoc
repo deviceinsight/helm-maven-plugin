@@ -77,6 +77,8 @@ chart files (e.g. Chart.yaml).
 
 == Changelog
 
+* 1.14: Do not create files in the temporary system folder any more
+
 * 1.13: Introduced `helm.skip` property for skipping plugin execution.
 
 * 1.12: Packaging and deploying have been split, so you have

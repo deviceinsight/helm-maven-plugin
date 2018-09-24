@@ -87,18 +87,20 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun determineHelmBinary(): String {
 
-		return helmBinaryFetchUrl?.let {
-			val helmTmpBinary = File.createTempFile("helm", "")
-			log.info("Downloading helm client from $helmBinaryFetchUrl")
+		return helmBinaryFetchUrl?.run {
+			val helmTmpBinary = File(target(), "helm-command")
+			if(!helmTmpBinary.exists()) {
+				log.info("Downloading helm client from $helmBinaryFetchUrl")
 
-			HttpClients.createDefault().use { httpClient ->
-				httpClient.execute(HttpGet(helmBinaryFetchUrl)).use { response ->
-					val statusCode = response.statusLine.statusCode
-					if (statusCode != 200) {
-						throw RuntimeException("Unexpected status code when downloading helm from $helmTmpBinary: $statusCode")
-					}
-					helmTmpBinary.outputStream().use {
-						response.entity.writeTo(it)
+				HttpClients.createDefault().use { httpClient ->
+					httpClient.execute(HttpGet(helmBinaryFetchUrl)).use { response ->
+						val statusCode = response.statusLine.statusCode
+						if (statusCode != 200) {
+							throw RuntimeException("Unexpected status code when downloading helm from $helmTmpBinary: $statusCode")
+						}
+						helmTmpBinary.outputStream().use {
+							response.entity.writeTo(it)
+						}
 					}
 				}
 			}
