@@ -20,8 +20,7 @@ import java.io.File
 /**
  * Publishes helm charts
  */
-@Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
-class HelmDeployMojo : AbstractMojo() {
+abstract class AbstractDeployMojo : AbstractMojo() {
 
 	/**
 	 * Name of the chart
@@ -144,3 +143,15 @@ class HelmDeployMojo : AbstractMojo() {
 
 	private fun isSnapshotVersion() = project.version.contains("SNAPSHOT")
 }
+
+/**
+ * define mojo for goal "helm-package"
+ */
+@Mojo(name = "helm-deploy", defaultPhase = LifecyclePhase.DEPLOY)
+class HelmDeployMojo : AbstractDeployMojo()
+
+/**
+ * define mojo for goal "package"
+ */
+@Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
+class DeployMojo : AbstractDeployMojo()
