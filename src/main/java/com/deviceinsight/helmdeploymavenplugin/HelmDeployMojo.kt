@@ -20,7 +20,7 @@ import java.io.File
 /**
  * Publishes helm charts
  */
-@Mojo(name = "helm-deploy", defaultPhase = LifecyclePhase.DEPLOY)
+@Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 class HelmDeployMojo : AbstractMojo() {
 
 	/**

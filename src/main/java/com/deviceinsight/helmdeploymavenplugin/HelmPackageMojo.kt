@@ -14,7 +14,7 @@ import java.io.File
 /**
  * Packages helm charts
  */
-@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
 class HelmPackageMojo : AbstractMojo() {
 
 	/**
