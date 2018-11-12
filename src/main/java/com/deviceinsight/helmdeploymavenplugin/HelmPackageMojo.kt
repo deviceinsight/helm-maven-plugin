@@ -14,8 +14,7 @@ import java.io.File
 /**
  * Packages helm charts
  */
-@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.PACKAGE)
-class HelmPackageMojo : AbstractMojo() {
+abstract class AbstractPackageMojo : AbstractMojo() {
 
 	/**
 	 * Name of the chart
@@ -82,7 +81,7 @@ class HelmPackageMojo : AbstractMojo() {
 
 	private fun validateConfiguration() {
 		check(!(helmBinaryFetchUrl != null && helmBinary != null),
-			{ "Cannot set both 'helmBinaryFetchUrl' and 'helmBinary'" })
+				{ "Cannot set both 'helmBinaryFetchUrl' and 'helmBinary'" })
 	}
 
 	private fun determineHelmBinary(): String {
@@ -173,3 +172,16 @@ class HelmPackageMojo : AbstractMojo() {
 	private fun chartName() = chartName ?: project.artifactId
 
 }
+
+/**
+ * define mojo for goal "helm-package"
+ */
+@Mojo(name = "helm-package", defaultPhase = LifecyclePhase.PACKAGE)
+class HelmPackageMojo : AbstractPackageMojo()
+
+/**
+ * define mojo for goal "package"
+ */
+@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
+class PackageMojo : AbstractPackageMojo()
+

@@ -4,7 +4,7 @@
 
 	<groupId>com.deviceinsight.helm</groupId>
 	<artifactId>helm-deploy-maven-plugin</artifactId>
-	<version>1.14</version>
+	<version>1.15</version>
 	<packaging>maven-plugin</packaging>
 
 	<properties>
@@ -104,6 +104,7 @@
 				<version>3.4</version>
 				<configuration>
 					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+					<goalPrefix>helm</goalPrefix>
 				</configuration>
 				<executions>
 					<execution>
