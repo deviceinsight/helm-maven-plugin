@@ -77,6 +77,9 @@ chart files (e.g. Chart.yaml).
 
 == Changelog
 
+* 1.15: Simplify goal names. Goals now can be run using short names
+  (`mvn helm:package helm:deploy`).
+
 * 1.14: Do not create files in the temporary system folder any more
 
 * 1.13: Introduced `helm.skip` property for skipping plugin execution.
