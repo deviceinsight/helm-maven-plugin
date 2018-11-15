@@ -1,8 +1,7 @@
 package com.deviceinsight.helmdeploymavenplugin
 
-import org.apache.maven.artifact.factory.ArtifactFactory
 import org.apache.maven.artifact.repository.ArtifactRepository
-import org.apache.maven.artifact.resolver.ArtifactResolver
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugins.annotations.Component
@@ -10,6 +9,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
+import org.apache.maven.repository.RepositorySystem
 import java.io.File
 
 
@@ -52,10 +52,7 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 	private lateinit var remoteRepositories: List<ArtifactRepository>
 
 	@Component
-	private lateinit var artifactResolver: ArtifactResolver
-
-	@Component
-	private lateinit var artifactFactory: ArtifactFactory
+	private lateinit var repositorySystem: RepositorySystem
 
 
 	@Throws(MojoExecutionException::class)
@@ -96,8 +93,20 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 
 	private fun resolveHelmBinary(): String {
 
-		val helmArtifact = this.artifactFactory.createBuildArtifact(helmGroupId, helmArtifactId, helmVersion, "binary")
-		artifactResolver.resolveAlways(helmArtifact, remoteRepositories, localRepository)
+		val helmArtifact = repositorySystem.createArtifact(helmGroupId, helmArtifactId, helmVersion, "binary")
+
+		val request = ArtifactResolutionRequest()
+		request.artifact = helmArtifact
+		request.isResolveTransitively = false
+		request.localRepository = localRepository
+		request.remoteRepositories = remoteRepositories
+
+		val resolutionResult = repositorySystem.resolve(request)
+
+		if (!resolutionResult.isSuccess) {
+			throw RuntimeException("Unable to resolve maven artifact ${helmGroupId}:${helmArtifactId}:${helmVersion}")
+		}
+
 		helmArtifact.file.setExecutable(true)
 
 		return helmArtifact.file.absolutePath
