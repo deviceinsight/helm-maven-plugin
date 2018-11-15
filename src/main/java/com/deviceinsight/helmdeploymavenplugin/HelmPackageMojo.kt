@@ -1,13 +1,15 @@
 package com.deviceinsight.helmdeploymavenplugin
 
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.HttpClients
+import org.apache.maven.artifact.repository.ArtifactRepository
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
+import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
+import org.apache.maven.repository.RepositorySystem
 import java.io.File
 
 
@@ -25,14 +27,14 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 	@Parameter(property = "chartRepoUrl", required = true)
 	private lateinit var chartRepoUrl: String
 
-	/**
-	 * The path to the helm command line client, defaults to `helm`.
-	 */
-	@Parameter(property = "helmBinary", required = false)
-	private var helmBinary: String? = null
+	@Parameter(property = "helmGroupId", defaultValue = "org.kubernetes.helm")
+	private lateinit var helmGroupId: String
 
-	@Parameter(property = "helmBinaryFetchUrl", required = false)
-	private var helmBinaryFetchUrl: String? = null
+	@Parameter(property = "helmArtifactId", defaultValue = "helm-binary")
+	private lateinit var helmArtifactId: String
+
+	@Parameter(property = "helmVersion", required = true)
+	private lateinit var helmVersion: String
 
 	@Parameter(property = "chartFolder", required = false)
 	private var chartFolder: String? = null
@@ -43,6 +45,16 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
 
+	@Parameter(readonly = true, required = true, defaultValue = "\${localRepository}")
+	private lateinit var localRepository: ArtifactRepository
+
+	@Parameter(readonly = true, required = true, defaultValue = "\${project.remoteArtifactRepositories}")
+	private lateinit var remoteRepositories: List<ArtifactRepository>
+
+	@Component
+	private lateinit var repositorySystem: RepositorySystem
+
+
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
 
@@ -52,8 +64,6 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 		}
 
 		try {
-
-			validateConfiguration()
 
 			val targetHelmDir = File(target(), chartName())
 
@@ -66,7 +76,7 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 
 			processHelmConfigFiles(targetHelmDir)
 
-			val helm = determineHelmBinary()
+			val helm = resolveHelmBinary()
 
 			executeCmd("$helm init --client-only")
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
@@ -74,47 +84,51 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()}")
 
+			ensureChartFileExists()
+
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error creating helm chart: ${e.message}", e)
 		}
 	}
 
-	private fun validateConfiguration() {
-		check(!(helmBinaryFetchUrl != null && helmBinary != null),
-				{ "Cannot set both 'helmBinaryFetchUrl' and 'helmBinary'" })
+	private fun resolveHelmBinary(): String {
+
+		val helmArtifact = repositorySystem.createArtifact(helmGroupId, helmArtifactId, helmVersion, "binary")
+
+		val request = ArtifactResolutionRequest()
+		request.artifact = helmArtifact
+		request.isResolveTransitively = false
+		request.localRepository = localRepository
+		request.remoteRepositories = remoteRepositories
+
+		val resolutionResult = repositorySystem.resolve(request)
+
+		if (!resolutionResult.isSuccess) {
+			throw RuntimeException("Unable to resolve maven artifact ${helmGroupId}:${helmArtifactId}:${helmVersion}")
+		}
+
+		helmArtifact.file.setExecutable(true)
+
+		return helmArtifact.file.absolutePath
 	}
 
-	private fun determineHelmBinary(): String {
+	private fun ensureChartFileExists() {
 
-		return helmBinaryFetchUrl?.run {
-			val helmTmpBinary = File(target(), "helm-command")
-			if(!helmTmpBinary.exists()) {
-				log.info("Downloading helm client from $helmBinaryFetchUrl")
+		val chartTarGzFile = chartTarGzFile()
 
-				HttpClients.createDefault().use { httpClient ->
-					httpClient.execute(HttpGet(helmBinaryFetchUrl)).use { response ->
-						val statusCode = response.statusLine.statusCode
-						if (statusCode != 200) {
-							throw RuntimeException("Unexpected status code when downloading helm from $helmTmpBinary: $statusCode")
-						}
-						helmTmpBinary.outputStream().use {
-							response.entity.writeTo(it)
-						}
-					}
-				}
-			}
-
-			log.info("Using downloaded helm client ${helmTmpBinary.absolutePath}")
-			helmTmpBinary.setExecutable(true)
-			return helmTmpBinary.absolutePath
-		} ?: (helmBinary ?: "helm")
+		if (!chartTarGzFile.exists()) {
+			throw RuntimeException("File ${chartTarGzFile.absolutePath} not found. " +
+					"Chart must be created in package phase first.")
+		} else {
+			log.info("Successfully packaged chart and saved it to: $chartTarGzFile")
+		}
 	}
 
 	private fun processHelmConfigFiles(targetHelmDir: File) {
 		val directory = File("${project.basedir}/${chartFolder()}")
-		log.info("Processing helm files in directory ${directory.absolutePath}")
+		log.debug("Processing helm files in directory ${directory.absolutePath}")
 		val processedFiles = directory.walkTopDown().filter { it.isFile }.onEach { file ->
-			log.info("Processing helm file ${file.absolutePath}")
+			log.debug("Processing helm file ${file.absolutePath}")
 			val fileContents = file.readText()
 			val updatedFileContents = Regex("\\$\\{(.*)}").replace(fileContents) { matchResult ->
 				val property = matchResult.groupValues[1]
@@ -127,7 +141,7 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 			}
 
 			val targetFile = targetHelmDir.resolve(file.toRelativeString(directory))
-			log.info("Copying to ${targetFile.absolutePath}")
+			log.debug("Copying to ${targetFile.absolutePath}")
 			targetFile.apply {
 				parentFile.mkdirs()
 				writeText(updatedFileContents)
@@ -150,9 +164,9 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 
 		proc.waitFor()
 
-		log.info("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
-		proc.inputStream.bufferedReader().lines().forEach { log.info("Output: $it") }
-		proc.errorStream.bufferedReader().lines().forEach { log.info("Output: $it") }
+		log.debug("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
+		proc.inputStream.bufferedReader().lines().forEach { log.debug("Output: $it") }
+		proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
 
 		if (proc.exitValue() != 0) {
 			throw RuntimeException("When executing '$cmd' got result code '${proc.exitValue()}'")
@@ -168,6 +182,8 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 	}
 
 	private fun target() = File(project.build.directory).resolve("helm")
+
+	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
 
 	private fun chartName() = chartName ?: project.artifactId
 
