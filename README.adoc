@@ -79,6 +79,8 @@ chart files (e.g. Chart.yaml).
 
 == Changelog
 
+* 1.17: Set helm chart version via `--version`. This allows to entirely omit the version in the `Chart.yaml`.
+  (https://jira.device-insight.com/browse/NGINFRA-142[NGINFRA-142])
 * 1.16: Resolve helm binary as a regular Maven artifact. This allows to share the binary via the local Maven repository,
   so it doesn't have to be re-downloaded for every project.
 +

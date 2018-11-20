@@ -18,6 +18,10 @@ import java.io.File
  */
 abstract class AbstractPackageMojo : AbstractMojo() {
 
+	companion object {
+		private val placeholderRegex = Regex("\\$\\{(.*)}")
+	}
+
 	/**
 	 * Name of the chart
 	 */
@@ -82,7 +86,7 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
 			executeCmd("$helm repo add chartRepo $chartRepoUrl")
 			executeCmd("$helm dependency update", directory = targetHelmDir)
-			executeCmd("$helm package ${chartName()}")
+			executeCmd("$helm package ${chartName()} --version ${project.model.version}")
 
 			ensureChartFileExists()
 
@@ -129,23 +133,30 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 		log.debug("Processing helm files in directory ${directory.absolutePath}")
 		val processedFiles = directory.walkTopDown().filter { it.isFile }.onEach { file ->
 			log.debug("Processing helm file ${file.absolutePath}")
-			val fileContents = file.readText()
-			val updatedFileContents = Regex("\\$\\{(.*)}").replace(fileContents) { matchResult ->
-				val property = matchResult.groupValues[1]
-				val propertyValue = findPropertyValue(property)
-
-				when (propertyValue) {
-					null -> matchResult.groupValues[0]
-					else -> propertyValue
-				}
-			}
-
 			val targetFile = targetHelmDir.resolve(file.toRelativeString(directory))
 			log.debug("Copying to ${targetFile.absolutePath}")
 			targetFile.apply {
 				parentFile.mkdirs()
-				writeText(updatedFileContents)
 			}
+
+			targetFile.bufferedWriter().use { writer ->
+				file.useLines { lines ->
+					lines.map { line ->
+						placeholderRegex.replace(line) { matchResult ->
+							val property = matchResult.groupValues[1]
+							val propertyValue = findPropertyValue(property)
+
+							when (propertyValue) {
+								null -> matchResult.groupValues[0]
+								else -> propertyValue
+							}
+						}
+					}.forEach {
+						writer.appendln(it)
+					}
+				}
+			}
+
 		}.toList()
 
 		if (processedFiles.isEmpty()) {
