@@ -1,5 +1,10 @@
 = Changelog
 
+== Version 1.18
+
+Add new goal `template`, which renders the template using `helm template`
+(https://jira.device-insight.com/browse/NG-51[NG-51])
+
 == Version 1.17
 
 Set helm chart version via `--version`. This allows to entirely omit the version in the `Chart.yaml`.
