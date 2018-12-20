@@ -1,62 +1,29 @@
 package com.deviceinsight.helmdeploymavenplugin
 
-import org.apache.maven.artifact.repository.ArtifactRepository
-import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
-import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
-import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
-import org.apache.maven.project.MavenProject
-import org.apache.maven.repository.RepositorySystem
 import java.io.File
 
 
 /**
  * Packages helm charts
  */
-abstract class AbstractPackageMojo : AbstractMojo() {
+abstract class AbstractPackageMojo : AbstractHelmMojo() {
 
 	companion object {
-		private val placeholderRegex = Regex("\\$\\{(.*)}")
+		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*)}""")
 	}
-
-	/**
-	 * Name of the chart
-	 */
-	@Parameter(property = "chartName", required = false)
-	private var chartName: String? = null
 
 	@Parameter(property = "chartRepoUrl", required = true)
 	private lateinit var chartRepoUrl: String
 
-	@Parameter(property = "helmGroupId", defaultValue = "org.kubernetes.helm")
-	private lateinit var helmGroupId: String
-
-	@Parameter(property = "helmArtifactId", defaultValue = "helm-binary")
-	private lateinit var helmArtifactId: String
-
-	@Parameter(property = "helmVersion", required = true)
-	private lateinit var helmVersion: String
-
 	@Parameter(property = "chartFolder", required = false)
 	private var chartFolder: String? = null
 
-	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
-	private lateinit var project: MavenProject
-
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
-
-	@Parameter(readonly = true, required = true, defaultValue = "\${localRepository}")
-	private lateinit var localRepository: ArtifactRepository
-
-	@Parameter(readonly = true, required = true, defaultValue = "\${project.remoteArtifactRepositories}")
-	private lateinit var remoteRepositories: List<ArtifactRepository>
-
-	@Component
-	private lateinit var repositorySystem: RepositorySystem
 
 
 	@Throws(MojoExecutionException::class)
@@ -95,27 +62,6 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 		}
 	}
 
-	private fun resolveHelmBinary(): String {
-
-		val helmArtifact = repositorySystem.createArtifact(helmGroupId, helmArtifactId, helmVersion, "binary")
-
-		val request = ArtifactResolutionRequest()
-		request.artifact = helmArtifact
-		request.isResolveTransitively = false
-		request.localRepository = localRepository
-		request.remoteRepositories = remoteRepositories
-
-		val resolutionResult = repositorySystem.resolve(request)
-
-		if (!resolutionResult.isSuccess) {
-			throw RuntimeException("Unable to resolve maven artifact ${helmGroupId}:${helmArtifactId}:${helmVersion}")
-		}
-
-		helmArtifact.file.setExecutable(true)
-
-		return helmArtifact.file.absolutePath
-	}
-
 	private fun ensureChartFileExists() {
 
 		val chartTarGzFile = chartTarGzFile()
@@ -142,7 +88,7 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 			targetFile.bufferedWriter().use { writer ->
 				file.useLines { lines ->
 					lines.map { line ->
-						placeholderRegex.replace(line) { matchResult ->
+						PLACEHOLDER_REGEX.replace(line) { matchResult ->
 							val property = matchResult.groupValues[1]
 							val propertyValue = findPropertyValue(property)
 
@@ -166,24 +112,6 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 
 	private fun chartFolder() = chartFolder ?: "src/main/helm/${chartName()}"
 
-	private fun executeCmd(cmd: String, directory: File = target()) {
-		val proc = ProcessBuilder(cmd.split(" "))
-				.directory(directory)
-				.redirectOutput(ProcessBuilder.Redirect.PIPE)
-				.redirectError(ProcessBuilder.Redirect.PIPE)
-				.start()
-
-		proc.waitFor()
-
-		log.debug("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
-		proc.inputStream.bufferedReader().lines().forEach { log.debug("Output: $it") }
-		proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
-
-		if (proc.exitValue() != 0) {
-			throw RuntimeException("When executing '$cmd' got result code '${proc.exitValue()}'")
-		}
-	}
-
 	private fun findPropertyValue(property: String): CharSequence? {
 		return when (property) {
 			"project.version" -> project.version
@@ -191,12 +119,6 @@ abstract class AbstractPackageMojo : AbstractMojo() {
 			else -> project.properties.getProperty(property)
 		}
 	}
-
-	private fun target() = File(project.build.directory).resolve("helm")
-
-	private fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
-
-	private fun chartName() = chartName ?: project.artifactId
 
 }
 
