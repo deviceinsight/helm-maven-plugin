@@ -1,5 +1,10 @@
 = Changelog
 
+== Version 1.19
+
+* Support multiple platforms (https://jira.device-insight.com/browse/NGINFRA-157[NGINFRA-157])
+* Download official helm binary release if release is missing in remote artifact repository
+
 == Version 1.18
 
 Add new goal `template`, which renders the template using `helm template`
