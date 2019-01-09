@@ -6,7 +6,6 @@ import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
 
-
 /**
  * Packages helm charts
  */
@@ -36,6 +35,8 @@ abstract class AbstractPackageMojo : AbstractHelmMojo() {
 
 		try {
 
+			val helm = resolveHelmBinary()
+
 			val targetHelmDir = File(target(), chartName())
 
 			log.info("Clear target directory to ensure clean target package")
@@ -46,8 +47,6 @@ abstract class AbstractPackageMojo : AbstractHelmMojo() {
 			log.info("Created target helm directory")
 
 			processHelmConfigFiles(targetHelmDir)
-
-			val helm = resolveHelmBinary()
 
 			executeCmd("$helm init --client-only")
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")

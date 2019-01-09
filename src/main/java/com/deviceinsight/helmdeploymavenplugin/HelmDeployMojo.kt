@@ -16,7 +16,6 @@ import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import java.io.File
 
-
 /**
  * Publishes helm charts
  */
@@ -84,7 +83,7 @@ abstract class AbstractDeployMojo : AbstractMojo() {
 
 		if (!chartTarGzFile.exists()) {
 			throw RuntimeException("File ${chartTarGzFile.absolutePath} not found. " +
-					"Chart must be created in package phase first.")
+				"Chart must be created in package phase first.")
 		}
 	}
 

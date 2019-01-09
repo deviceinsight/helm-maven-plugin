@@ -1,4 +1,6 @@
-= Usage
+= Helm Maven Plugin
+
+== Usage
 
 Add the following to your `pom.xml`
 
@@ -9,29 +11,27 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-deploy-maven-plugin</artifactId>
-      <version>1.16</version>
+      <version>1.19</version>
       <configuration>
         <chartName>sth-project</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
-        <helmVersion>2.8.2</helmVersion>
+        <helmVersion>2.12.1</helmVersion>
       </configuration>
       <executions>
         <execution>
           <goals>
-            <goal>helm-package</goal>
-            <goal>helm-deploy</goal>
+            <goal>package</goal>
+            <goal>deploy</goal>
           </goals>
         </execution>
       </executions>
     </plugin>
   </plugins>
 </build>
-
 ....
 
-In the same Maven module, put your helm charts into
-`src/main/helm/<chartName>`. In the `Chart.yaml`, you can
-use the `${artifactId}` and `${project.version}` Maven placeholders. You can also use Maven properties.
+In the same Maven module, put your helm charts into `src/main/helm/<chartName>`. In the `Chart.yaml`, you can use the
+`${artifactId}` and `${project.version}` Maven placeholders. You can also use Maven properties.
 
 An example for a `Chart.yaml` is:
 
@@ -54,7 +54,6 @@ that the correct docker image is used. An example snippet:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}/rubicon:${project.version}"
-
 [...]
 ....
 
@@ -67,13 +66,12 @@ that the correct docker image is used. An example snippet:
 |chartRepoUrl |None |The URL of the Chart Museum where charts should be published to
 |chartRepoUsername |None |The username for basic authentication against the chart repo
 |chartRepoPassword |None |The password for basic authentication against the chart repo
-|chartFolder |"src/main/helm/<chartName>" |The location of the
-chart files (e.g. Chart.yaml).
-|skipSnapshots |true |If true, SNAPSHOT versions will be built, but not deployed.
+|chartFolder |`"src/main/helm/<chartName>"` |The location of the chart files (e.g. Chart.yaml).
+|skipSnapshots |`true` |If true, SNAPSHOT versions will be built, but not deployed.
 |helmGroupId |`"org.kubernetes.helm"` |The helm binary `groupId`
 |helmArtifactId |`"helm-binary"` |The helm binary `artifactId`
 |helmVersion |None |The helm binary `version`
-|helm.skip |false |If true, execution will be skipped entirely
+|helm.skip |`false` |If true, execution will be skipped entirely
 
 |===
 
