@@ -106,7 +106,7 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 
 		val fileName = "helm-v$helmVersion-$platformIdentifier"
 
-		val targetFile: Path = artifact.file.toPath()
+		val targetFile = artifact.file.toPath()
 		Files.createDirectories(targetFile.parent)
 
 		val url = helmDownloadUrl.resolve("./$fileName.zip").toURL()
