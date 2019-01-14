@@ -1,5 +1,7 @@
 = Helm Maven Plugin
 
+image::https://api.travis-ci.org/deviceinsight/helm-maven-plugin.svg?branch=develop[Build Status]
+
 == Usage
 
 Add the following to your `pom.xml`
