@@ -71,8 +71,8 @@ that the correct docker image is used. An example snippet:
 |chartRepoPassword |None |The password for basic authentication against the chart repo
 |chartFolder |`"src/main/helm/<chartName>"` |The location of the chart files (e.g. Chart.yaml).
 |skipSnapshots |`true` |If true, SNAPSHOT versions will be built, but not deployed.
-|helmGroupId |`"io.kubernetes.helm"` |The helm binary `groupId`
-|helmArtifactId |`"helm-binary"` |The helm binary `artifactId`
+|helmGroupId |`"com.deviceinsight.helm"` |The helm binary `groupId`
+|helmArtifactId |`"helm"` |The helm binary `artifactId`
 |helmVersion |None |The helm binary `version`
 |helm.skip |`false` |If true, execution will be skipped entirely
 

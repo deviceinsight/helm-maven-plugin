@@ -39,7 +39,7 @@ import kotlin.system.measureTimeMillis
 
 abstract class AbstractHelmMojo : AbstractMojo() {
 
-	@Parameter(property = "helmGroupId", defaultValue = "io.kubernetes.helm")
+	@Parameter(property = "helmGroupId", defaultValue = "com.deviceinsight.helm")
 	private lateinit var helmGroupId: String
 
 	@Parameter(property = "helmArtifactId", defaultValue = "helm")
@@ -73,8 +73,8 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 
 		val platformIdentifier = PlatformDetector.detectHelmReleasePlatformIdentifier()
 		val helmArtifact: Artifact =
-				repositorySystem.createArtifactWithClassifier(helmGroupId, helmArtifactId, helmVersion, "binary",
-						platformIdentifier)
+			repositorySystem.createArtifactWithClassifier(helmGroupId, helmArtifactId, helmVersion, "binary",
+				platformIdentifier)
 
 		val request = ArtifactResolutionRequest()
 		request.artifact = helmArtifact
@@ -97,10 +97,10 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	protected fun executeCmd(cmd: String, directory: File = target(),
 							 redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE) {
 		val proc = ProcessBuilder(cmd.split(" "))
-				.directory(directory)
-				.redirectOutput(redirectOutput)
-				.redirectError(ProcessBuilder.Redirect.PIPE)
-				.start()
+			.directory(directory)
+			.redirectOutput(redirectOutput)
+			.redirectError(ProcessBuilder.Redirect.PIPE)
+			.start()
 
 		proc.waitFor()
 
@@ -165,6 +165,6 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	}
 
 	private fun isHelmBinary(entry: ZipEntry): Boolean =
-			!entry.isDirectory && (entry.name.endsWith("helm") || entry.name.endsWith("helm.exe"))
+		!entry.isDirectory && (entry.name.endsWith("helm") || entry.name.endsWith("helm.exe"))
 
 }
