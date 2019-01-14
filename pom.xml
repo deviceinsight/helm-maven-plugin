@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.deviceinsight.helm</groupId>
-	<artifactId>helm-deploy-maven-plugin</artifactId>
+	<artifactId>helm-maven-plugin</artifactId>
 	<version>1.19-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 
@@ -119,6 +119,9 @@
 	</dependencies>
 
 	<build>
+		<sourceDirectory>src/main/kotlin</sourceDirectory>
+		<testSourceDirectory>src/test/kotlin</testSourceDirectory>
+
 		<plugins>
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
@@ -197,17 +200,11 @@
 		<url>https://device-insight.com</url>
 	</organization>
 
-	<distributionManagement>
-		<repository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>releases</id>
-			<url>http://nexus.device-insight.de/nexus/content/repositories/releases</url>
-		</repository>
-		<snapshotRepository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>snapshots</id>
-			<url>http://nexus.device-insight.de/nexus/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
 
 </project>

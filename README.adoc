@@ -4,16 +4,17 @@
 
 Add the following to your `pom.xml`
 
+[source,xml]
 ....
 <build>
   <plugins>
     ...
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
-      <artifactId>helm-deploy-maven-plugin</artifactId>
+      <artifactId>helm-maven-plugin</artifactId>
       <version>1.19</version>
       <configuration>
-        <chartName>sth-project</chartName>
+        <chartName>my-chart</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
         <helmVersion>2.12.1</helmVersion>
       </configuration>
@@ -35,6 +36,7 @@ In the same Maven module, put your helm charts into `src/main/helm/<chartName>`.
 
 An example for a `Chart.yaml` is:
 
+[source,yaml]
 ....
 apiVersion: v1
 description: A Helm chart installing Rubicon
@@ -49,6 +51,7 @@ maintainers:
 You probably also will adjust the `templates/deployment.yaml` so
 that the correct docker image is used. An example snippet:
 
+[source,yaml]
 ....
 [...]
       containers:
@@ -68,7 +71,7 @@ that the correct docker image is used. An example snippet:
 |chartRepoPassword |None |The password for basic authentication against the chart repo
 |chartFolder |`"src/main/helm/<chartName>"` |The location of the chart files (e.g. Chart.yaml).
 |skipSnapshots |`true` |If true, SNAPSHOT versions will be built, but not deployed.
-|helmGroupId |`"org.kubernetes.helm"` |The helm binary `groupId`
+|helmGroupId |`"io.kubernetes.helm"` |The helm binary `groupId`
 |helmArtifactId |`"helm-binary"` |The helm binary `artifactId`
 |helmVersion |None |The helm binary `version`
 |helm.skip |`false` |If true, execution will be skipped entirely
@@ -79,7 +82,7 @@ that the correct docker image is used. An example snippet:
 
 Creating a new release involves the following steps:
 
-. `mvn -DenableSshAgent=true jgitflow:release-start jgitflow:release-finish` +
+. `./mvnw -DenableSshAgent=true jgitflow:release-start jgitflow:release-finish` +
 [NOTE]
 The `-DenableSshAgent=true` is only necessary, if you cloned the repository via SSH.
 . `git push origin master`
