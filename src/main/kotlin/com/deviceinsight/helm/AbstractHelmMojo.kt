@@ -1,5 +1,22 @@
-package com.deviceinsight.helmdeploymavenplugin
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package com.deviceinsight.helm
+
+import com.deviceinsight.helm.util.PlatformDetector
 import org.apache.maven.artifact.Artifact
 import org.apache.maven.artifact.repository.ArtifactRepository
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
@@ -22,7 +39,7 @@ import kotlin.system.measureTimeMillis
 
 abstract class AbstractHelmMojo : AbstractMojo() {
 
-	@Parameter(property = "helmGroupId", defaultValue = "io.kubernetes.helm")
+	@Parameter(property = "helmGroupId", defaultValue = "com.deviceinsight.helm")
 	private lateinit var helmGroupId: String
 
 	@Parameter(property = "helmArtifactId", defaultValue = "helm")
@@ -56,8 +73,8 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 
 		val platformIdentifier = PlatformDetector.detectHelmReleasePlatformIdentifier()
 		val helmArtifact: Artifact =
-				repositorySystem.createArtifactWithClassifier(helmGroupId, helmArtifactId, helmVersion, "binary",
-						platformIdentifier)
+			repositorySystem.createArtifactWithClassifier(helmGroupId, helmArtifactId, helmVersion, "binary",
+				platformIdentifier)
 
 		val request = ArtifactResolutionRequest()
 		request.artifact = helmArtifact
@@ -80,10 +97,10 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	protected fun executeCmd(cmd: String, directory: File = target(),
 							 redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE) {
 		val proc = ProcessBuilder(cmd.split(" "))
-				.directory(directory)
-				.redirectOutput(redirectOutput)
-				.redirectError(ProcessBuilder.Redirect.PIPE)
-				.start()
+			.directory(directory)
+			.redirectOutput(redirectOutput)
+			.redirectError(ProcessBuilder.Redirect.PIPE)
+			.start()
 
 		proc.waitFor()
 
@@ -148,6 +165,6 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	}
 
 	private fun isHelmBinary(entry: ZipEntry): Boolean =
-			!entry.isDirectory && (entry.name.endsWith("helm") || entry.name.endsWith("helm.exe"))
+		!entry.isDirectory && (entry.name.endsWith("helm") || entry.name.endsWith("helm.exe"))
 
 }

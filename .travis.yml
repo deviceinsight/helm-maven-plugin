@@ -1,0 +1,15 @@
+language: java
+
+jdk:
+  - openjdk8
+  - oraclejdk8
+  - oraclejdk9
+  - oraclejdk11
+
+cache:
+  directories:
+    - $HOME/.m2
+
+install: /bin/true
+
+script: ./mvnw verify -B
