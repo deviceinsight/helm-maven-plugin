@@ -1,6 +1,9 @@
 = Helm Maven Plugin
 
-image::https://api.travis-ci.org/deviceinsight/helm-maven-plugin.svg?branch=develop[Build Status]
+:uri-build-status: https://travis-ci.org/deviceinsight/helm-maven-plugin
+:img-build-status: https://api.travis-ci.org/deviceinsight/helm-maven-plugin.svg?branch=develop
+
+image:{img-build-status}[Build Status Badge,link={uri-build-status}]
 
 == Usage
 
