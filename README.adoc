@@ -21,7 +21,7 @@ Add the following to your `pom.xml`
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
-        <helmVersion>2.12.1</helmVersion>
+        <helmVersion>2.12.2</helmVersion>
       </configuration>
       <executions>
         <execution>
