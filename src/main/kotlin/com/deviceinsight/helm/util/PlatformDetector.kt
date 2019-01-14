@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.deviceinsight.helm
+package com.deviceinsight.helm.util
 
 import java.util.Locale
 

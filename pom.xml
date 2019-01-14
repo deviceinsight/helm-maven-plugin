@@ -24,7 +24,9 @@
 		<junit.version>4.12</junit.version>
 		<assertj-core.version>3.11.1</assertj-core.version>
 
+		<dokka-maven-plugin.version>0.9.17</dokka-maven-plugin.version>
 		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
 		<jgitflow-maven-plugin.version>1.0-m5.1</jgitflow-maven-plugin.version>
 	</properties>
 
@@ -145,6 +147,31 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.jetbrains.dokka</groupId>
+				<artifactId>dokka-maven-plugin</artifactId>
+				<version>${dokka-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>dokka</goal>
+							<goal>javadocJar</goal>
+						</goals>
+						<configuration>
+							<sourceDirectories>
+								<dir>${project.build.sourceDirectory}</dir>
+							</sourceDirectories>
+							<perPackageOptions>
+								<packageOptions>
+									<prefix>com.deviceinsight.helm</prefix>
+									<reportUndocumented>false</reportUndocumented>
+								</packageOptions>
+							</perPackageOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-plugin-plugin</artifactId>
 				<version>${maven.version}</version>
@@ -183,6 +210,20 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>external.atlassian.jgitflow</groupId>
 				<artifactId>jgitflow-maven-plugin</artifactId>
 				<version>${jgitflow-maven-plugin.version}</version>
@@ -194,6 +235,14 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>jcenter</id>
+			<name>JCenter</name>
+			<url>https://jcenter.bintray.com/</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<organization>
 		<name>Device Insight GmbH</name>

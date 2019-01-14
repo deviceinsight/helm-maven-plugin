@@ -16,6 +16,7 @@
 
 package com.deviceinsight.helm
 
+import com.deviceinsight.helm.util.PlatformDetector
 import org.apache.maven.artifact.Artifact
 import org.apache.maven.artifact.repository.ArtifactRepository
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
