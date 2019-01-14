@@ -12,7 +12,7 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>1.19</version>
+      <version>2.0.0</version>
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
