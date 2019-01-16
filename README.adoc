@@ -5,6 +5,9 @@
 
 image:{img-build-status}[Build Status Badge,link={uri-build-status}]
 
+A Maven plugin that makes Maven properties available in your Helm Charts. It can be used to automatically package your
+Helm Chart, render it and upload it to a https://chartmuseum.com/[Chart Museum].
+
 == Usage
 
 Add the following to your `pom.xml`
