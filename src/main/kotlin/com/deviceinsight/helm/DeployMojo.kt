@@ -1,4 +1,20 @@
-package com.deviceinsight.helmdeploymavenplugin
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.deviceinsight.helm
 
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -16,11 +32,11 @@ import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import java.io.File
 
-
 /**
  * Publishes helm charts
  */
-abstract class AbstractDeployMojo : AbstractMojo() {
+@Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
+class DeployMojo : AbstractMojo() {
 
 	/**
 	 * Name of the chart
@@ -84,7 +100,7 @@ abstract class AbstractDeployMojo : AbstractMojo() {
 
 		if (!chartTarGzFile.exists()) {
 			throw RuntimeException("File ${chartTarGzFile.absolutePath} not found. " +
-					"Chart must be created in package phase first.")
+				"Chart must be created in package phase first.")
 		}
 	}
 
@@ -143,15 +159,3 @@ abstract class AbstractDeployMojo : AbstractMojo() {
 
 	private fun isSnapshotVersion() = project.version.contains("SNAPSHOT")
 }
-
-/**
- * define mojo for goal "helm-package"
- */
-@Mojo(name = "helm-deploy", defaultPhase = LifecyclePhase.DEPLOY)
-class HelmDeployMojo : AbstractDeployMojo()
-
-/**
- * define mojo for goal "package"
- */
-@Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
-class DeployMojo : AbstractDeployMojo()

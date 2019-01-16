@@ -1,40 +1,50 @@
-= Usage
+= Helm Maven Plugin
+
+:uri-build-status: https://travis-ci.org/deviceinsight/helm-maven-plugin
+:img-build-status: https://api.travis-ci.org/deviceinsight/helm-maven-plugin.svg?branch=develop
+
+image:{img-build-status}[Build Status Badge,link={uri-build-status}]
+
+A Maven plugin that makes Maven properties available in your Helm Charts. It can be used to automatically package your
+Helm Chart, render it and upload it to a https://chartmuseum.com/[Chart Museum].
+
+== Usage
 
 Add the following to your `pom.xml`
 
+[source,xml]
 ....
 <build>
   <plugins>
     ...
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
-      <artifactId>helm-deploy-maven-plugin</artifactId>
-      <version>1.16</version>
+      <artifactId>helm-maven-plugin</artifactId>
+      <version>2.0.0</version>
       <configuration>
-        <chartName>sth-project</chartName>
+        <chartName>my-chart</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
-        <helmVersion>2.8.2</helmVersion>
+        <helmVersion>2.12.2</helmVersion>
       </configuration>
       <executions>
         <execution>
           <goals>
-            <goal>helm-package</goal>
-            <goal>helm-deploy</goal>
+            <goal>package</goal>
+            <goal>deploy</goal>
           </goals>
         </execution>
       </executions>
     </plugin>
   </plugins>
 </build>
-
 ....
 
-In the same Maven module, put your helm charts into
-`src/main/helm/<chartName>`. In the `Chart.yaml`, you can
-use the `${artifactId}` and `${project.version}` Maven placeholders. You can also use Maven properties.
+In the same Maven module, put your helm charts into `src/main/helm/<chartName>`. In the `Chart.yaml`, you can use the
+`${artifactId}` and `${project.version}` Maven placeholders. You can also use Maven properties.
 
 An example for a `Chart.yaml` is:
 
+[source,yaml]
 ....
 apiVersion: v1
 description: A Helm chart installing Rubicon
@@ -49,12 +59,12 @@ maintainers:
 You probably also will adjust the `templates/deployment.yaml` so
 that the correct docker image is used. An example snippet:
 
+[source,yaml]
 ....
 [...]
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}/rubicon:${project.version}"
-
 [...]
 ....
 
@@ -67,24 +77,42 @@ that the correct docker image is used. An example snippet:
 |chartRepoUrl |None |The URL of the Chart Museum where charts should be published to
 |chartRepoUsername |None |The username for basic authentication against the chart repo
 |chartRepoPassword |None |The password for basic authentication against the chart repo
-|chartFolder |"src/main/helm/<chartName>" |The location of the
-chart files (e.g. Chart.yaml).
-|skipSnapshots |true |If true, SNAPSHOT versions will be built, but not deployed.
-|helmGroupId |`"org.kubernetes.helm"` |The helm binary `groupId`
-|helmArtifactId |`"helm-binary"` |The helm binary `artifactId`
+|chartFolder |`"src/main/helm/<chartName>"` |The location of the chart files (e.g. Chart.yaml).
+|skipSnapshots |`true` |If true, SNAPSHOT versions will be built, but not deployed.
+|helmGroupId |`"com.deviceinsight.helm"` |The helm binary `groupId`
+|helmArtifactId |`"helm"` |The helm binary `artifactId`
 |helmVersion |None |The helm binary `version`
-|helm.skip |false |If true, execution will be skipped entirely
+|helm.skip |`false` |If true, execution will be skipped entirely
 
 |===
 
-= Releasing
+== Releasing
 
 Creating a new release involves the following steps:
 
-. `mvn -DenableSshAgent=true jgitflow:release-start jgitflow:release-finish` +
+. `./mvnw -DenableSshAgent=true jgitflow:release-start jgitflow:release-finish` +
 [NOTE]
 The `-DenableSshAgent=true` is only necessary, if you cloned the repository via SSH.
 . `git push origin master`
 . `git push --tags`
 . `git push origin develop`
 
+In order to deploy the release to Maven Central, you need to create an account at https://issues.sonatype.org and
+configure your account in `~/.m2/settings.xml`:
+
+[source,xml]
+....
+<settings>
+  <servers>
+    <server>
+      <id>ossrh</id>
+      <username>your-jira-id</username>
+      <password>your-jira-pwd</password>
+    </server>
+  </servers>
+</settings>
+....
+
+The account also needs access to the project on Maven Central. This can be requested by another project member.
+
+Then check out the release you want to deploy (`git checkout x.y.z`) and run `./mvnw deploy -Prelease`.

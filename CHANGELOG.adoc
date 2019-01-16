@@ -1,39 +1,16 @@
 = Changelog
 
-== Version 1.18
+== Version 2.0.0
 
-Add new goal `template`, which renders the template using `helm template`
-(https://jira.device-insight.com/browse/NG-51[NG-51])
-
-== Version 1.17
-
-Set helm chart version via `--version`. This allows to entirely omit the version in the `Chart.yaml`.
-(https://jira.device-insight.com/browse/NGINFRA-142[NGINFRA-142])
-
-== Version 1.16
-
-Resolve helm binary as a regular Maven artifact. This allows to share the binary via the local Maven repository,
-so it doesn't have to be re-downloaded for every project.
-+
-WARNING: The properties `helmBinary` and `helmBinaryFetchUrl` were removed. `helmVersion` must be defined instead.
-
-== Version 1.15
-
-Simplify goal names. Goals now can be run using short names
-(`mvn helm:package helm:deploy`).
-
-== Version 1.14
-
-Do not create files in the temporary system folder any more
-
-== Version 1.13
-
-Introduced `helm.skip` property for skipping plugin execution.
-
-== Version 1.12
-
-Packaging and deploying have been split, so you have
-to add `<goal>helm-deploy</goal>` to the `<goals>` section
-of the configuration. Also, the `<skipPublishing>` option
-has been removed, since the same result can be achieved
-by omitting the `helm-deploy` goal from the `<goals>`.
+* Support multiple platforms.
+* Download official helm binary release if release is missing in remote artifact repository.
+* Resolve helm binary as a regular Maven artifact. This allows to share the binary via the local Maven repository,
+  so it doesn't have to be re-downloaded for every project.
+* Add new goal `template`, which renders the template using `helm template`.
+* Set helm chart version via `--version`. This allows to entirely omit the version in the `Chart.yaml`.
+* Simplify goal names. Goals now can be run using short names (`mvn helm:package helm:deploy`).
+* Do not create files in the temporary system folder any more.
+* Introduced `helm.skip` property for skipping plugin execution.
+* Packaging and deploying have been split, so you have to add `<goal>deploy</goal>` to the `<goals>` section of the
+  plugin configuration. Also, the `<skipPublishing>` option has been removed, since the same result can be achieved by
+  omitting the `deploy` goal from the `<goals>`.
