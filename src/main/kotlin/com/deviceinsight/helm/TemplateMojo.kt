@@ -64,6 +64,10 @@ class TemplateMojo : AbstractHelmMojo() {
 				file = project.basedir.resolve(file)
 			}
 
+			if (!file.parentFile.exists()) {
+				file.parentFile.mkdir()
+			}
+
 			executeCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
 
 			log.info("Rendered helm template to ${file.absolutePath}")
