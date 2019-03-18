@@ -65,7 +65,7 @@ class TemplateMojo : AbstractHelmMojo() {
 			}
 
 			if (!file.parentFile.exists()) {
-				file.parentFile.mkdir()
+				file.parentFile.mkdirs()
 			}
 
 			executeCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
