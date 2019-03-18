@@ -83,8 +83,40 @@ that the correct docker image is used. An example snippet:
 |helmArtifactId |`"helm"` |The helm binary `artifactId`
 |helmVersion |None |The helm binary `version`
 |helm.skip |`false` |If true, execution will be skipped entirely
+|strictLint |`false` |If true, linting fails on warnings (see: <<goal-lint>>)
+|valuesFile | None | values file that should be used for goals <<goal-lint>>, <<goal-template>>
+|outputFile | target/test-classes/helm.yaml | output file for <<goal-template,template goal>>
 
 |===
+
+== Goals
+
+[#goal-package]
+=== Package
+
+goal packages a chart directory into a chart archive using the https://github.com/helm/helm/blob/master/docs/helm/helm_package.md[helm package] command.
+
+[#goal-deploy]
+=== Deploy
+
+goal publishes the packaged chart in the configured chart repository.
+
+[#goal-lint]
+=== Lint
+
+goal examines a chart for possible issues using the https://github.com/helm/helm/blob/master/docs/helm/helm_lint.md[helm lint]  command.
+
+* a values file can be provided via parameter `valueFile`
+* strict linting can be configured via parameter `strictLint`
+
+
+[#goal-template]
+=== Template
+
+goal locally renders templates using the https://github.com/helm/helm/blob/master/docs/helm/helm_template.md[helm template] command.
+
+* a values file can be provided via parameter `valueFile`
+* an output file can be provided via parameter `outputFile`
 
 == Releasing
 
