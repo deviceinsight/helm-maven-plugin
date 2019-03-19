@@ -4,7 +4,7 @@
 
 	<groupId>com.deviceinsight.helm</groupId>
 	<artifactId>helm-maven-plugin</artifactId>
-	<version>2.0.0</version>
+	<version>2.1.0</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>Helm Maven Plugin</name>
@@ -236,6 +236,14 @@
 			<id>stefan-hudelmaier</id>
 			<name>Stefan Hudelmaier</name>
 			<email>stefan.hudelmaier@device-insight.com</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>dwi-di</id>
+			<name>Dirk Wilden</name>
+			<email>dirk.wilden@device-insight.com</email>
 			<roles>
 				<role>Developer</role>
 			</roles>
