@@ -3,6 +3,7 @@
 == Version 2.1.0
 
 * Add new goal lint, which runs linting using helm lint.
+* Make sure `target/test-classes` is created if it's missing.
 
 == Version 2.0.0
 
