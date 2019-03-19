@@ -62,7 +62,7 @@ class LintMojo : AbstractHelmMojo() {
 				params.add("--values ${project.basedir.resolve(valuesFile!!).absolutePath}")
 			}
 
-			val allParams = params.stream().collect(Collectors.joining(" "))
+			val allParams = params.joinToString(" ")
 			val command = "$helm lint ${chartName()} $allParams".trim()
 
 			executeCmd(command)

@@ -94,20 +94,20 @@ that the correct docker image is used. An example snippet:
 [#goal-package]
 === Package
 
-goal packages a chart directory into a chart archive using the https://github.com/helm/helm/blob/master/docs/helm/helm_package.md[helm package] command.
+Goal packages a chart directory into a chart archive using the https://github.com/helm/helm/blob/master/docs/helm/helm_package.md[helm package] command.
 
 [#goal-deploy]
 === Deploy
 
-goal publishes the packaged chart in the configured chart repository.
+Goal publishes the packaged chart in the configured chart repository.
 
 [#goal-lint]
 === Lint
 
-goal examines a chart for possible issues using the https://github.com/helm/helm/blob/master/docs/helm/helm_lint.md[helm lint]  command.
+Goal examines a chart for possible issues using the https://github.com/helm/helm/blob/master/docs/helm/helm_lint.md[helm lint]  command.
 
-* a values file can be provided via parameter `valueFile`
-* strict linting can be configured via parameter `strictLint`
+* A values file can be provided via parameter `valueFile`
+* Strict linting can be configured via parameter `strictLint`
 
 
 [#goal-template]
@@ -115,8 +115,8 @@ goal examines a chart for possible issues using the https://github.com/helm/helm
 
 goal locally renders templates using the https://github.com/helm/helm/blob/master/docs/helm/helm_template.md[helm template] command.
 
-* a values file can be provided via parameter `valueFile`
-* an output file can be provided via parameter `outputFile`
+* A values file can be provided via parameter `valueFile`
+* An output file can be provided via parameter `outputFile`
 
 == Releasing
 
