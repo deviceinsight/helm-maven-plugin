@@ -240,6 +240,14 @@
 				<role>Developer</role>
 			</roles>
 		</developer>
+		<developer>
+			<id>dwi-di</id>
+			<name>Dirk Wilden</name>
+			<email>dirk.wilden@device-insight.com</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
 	</developers>
 
 	<scm>
