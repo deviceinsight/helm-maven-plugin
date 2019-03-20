@@ -25,8 +25,8 @@ Add the following to your `pom.xml`
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
         <helmVersion>2.13.0</helmVersion>
-		<strictLint>true</strictLint>
-		<valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
+        <strictLint>true</strictLint>
+        <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
       </configuration>
       <executions>
         <execution>
