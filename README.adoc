@@ -20,16 +20,20 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>2.0.0</version>
+      <version>2.1.0</version>
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
-        <helmVersion>2.12.2</helmVersion>
+        <helmVersion>2.13.0</helmVersion>
+		<strictLint>true</strictLint>
+		<valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
       </configuration>
       <executions>
         <execution>
           <goals>
             <goal>package</goal>
+            <goal>lint</goal>
+            <goal>template</goal>
             <goal>deploy</goal>
           </goals>
         </execution>
