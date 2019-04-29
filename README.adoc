@@ -23,7 +23,7 @@ Add the following to your `pom.xml`
       <version>2.1.0</version>
       <configuration>
         <chartName>my-chart</chartName>
-        <chartRepoUrl>https://helmcharts.device-insight.com</chartRepoUrl>
+        <chartRepoUrl>https://kubernetes-charts.storage.googleapis.com</chartRepoUrl>
         <helmVersion>2.13.0</helmVersion>
         <strictLint>true</strictLint>
         <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
@@ -78,7 +78,7 @@ that the correct docker image is used. An example snippet:
 |Property |Default |Description
 
 |chartName |The Maven `artifactId` |The name of the chart
-|chartRepoUrl |None |The URL of the Chart Museum where charts should be published to
+|chartRepoUrl |None |The URL of the Chart repository where dependencies are required from and where charts should be published to
 |chartRepoUsername |None |The username for basic authentication against the chart repo
 |chartRepoPassword |None |The password for basic authentication against the chart repo
 |chartFolder |`"src/main/helm/<chartName>"` |The location of the chart files (e.g. Chart.yaml).
