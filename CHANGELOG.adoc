@@ -1,5 +1,10 @@
 = Changelog
 
+== Version 2.1.1
+
+* Update dependency on `jackson-databind` to version 2.9.9 because of
+  https://nvd.nist.gov/vuln/detail/CVE-2019-12086[CVE-2019-12086].
+
 == Version 2.1.0
 
 * Add new goal lint, which runs linting using helm lint.

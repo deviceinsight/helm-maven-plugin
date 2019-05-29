@@ -4,7 +4,7 @@
 
 	<groupId>com.deviceinsight.helm</groupId>
 	<artifactId>helm-maven-plugin</artifactId>
-	<version>2.1.0</version>
+	<version>2.1.1</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>Helm Maven Plugin</name>
@@ -22,7 +22,7 @@
 		<maven-project.version>2.2.1</maven-project.version>
 		<maven-artifact-transfer.version>0.10.1</maven-artifact-transfer.version>
 
-		<jackson.version>2.9.8</jackson.version>
+		<jackson.version>2.9.9</jackson.version>
 		<httpclient.version>4.5.6</httpclient.version>
 
 		<junit.version>4.12</junit.version>
