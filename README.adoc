@@ -122,6 +122,42 @@ goal locally renders templates using the https://github.com/helm/helm/blob/maste
 * A values file can be provided via parameter `valueFile`
 * An output file can be provided via parameter `outputFile`
 
+== Example
+
+To use the `deployAtEnd` functionality it's mandatory to declare it only in the parent pom.
+
+[source,xml]
+....
+<build>
+  <plugins>
+    ...
+    <plugin>
+	  <groupId>com.deviceinsight.helm</groupId>
+	  <artifactId>helm-maven-plugin</artifactId>
+	  <version>2.1.0</version>
+	  <configuration>
+		<chartName>my-chart</chartName>
+		<chartRepoUrl>https://kubernetes-charts.storage.googleapis.com/</chartRepoUrl>
+		<helmVersion>2.13.0</helmVersion>
+		<strictLint>true</strictLint>
+		<valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
+		<deployAtEnd>true</deployAtEnd>
+	  </configuration>
+	  <executions>
+		<execution>
+		  <goals>
+			<goal>package</goal>
+			<goal>lint</goal>
+			<goal>template</goal>
+			<goal>deploy</goal>
+		  </goals>
+		</execution>
+	  </executions>
+	</plugin>
+  </plugins>
+</build>
+....
+
 == Releasing
 
 Creating a new release involves the following steps:
