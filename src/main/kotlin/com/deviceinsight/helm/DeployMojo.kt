@@ -73,7 +73,7 @@ class DeployMojo : AbstractMojo() {
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
 
-	@Parameter(property = "deployAtEnd", required = false, defaultValue = "false")
+	@Parameter(property = "helm.deployAtEnd", defaultValue = "false")
 	private var deployAtEnd: Boolean = false
 
 	@Throws(MojoExecutionException::class)

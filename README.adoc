@@ -90,6 +90,7 @@ that the correct docker image is used. An example snippet:
 |strictLint |`false` |If true, linting fails on warnings (see: <<goal-lint>>)
 |valuesFile | None | values file that should be used for goals <<goal-lint>>, <<goal-template>>
 |outputFile | target/test-classes/helm.yaml | output file for <<goal-template,template goal>>
+|deployAtEnd |`false` | Specify the helm chart should be deployed at the end of the multi-module build.
 
 |===
 
