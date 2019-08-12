@@ -51,7 +51,7 @@ class TemplateMojo : AbstractHelmMojo() {
 		try {
 
 			if (!isChartFolderPresent()) {
-				log.warn("No sources found skipping helm template.")
+				log.warn("No sources found, skipping helm template.")
 				return
 			}
 

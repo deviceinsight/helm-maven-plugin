@@ -94,11 +94,11 @@ class DeployMojo : AbstractMojo() {
 				return
 			}
 
-			var deployAtEndRequest = false
+			var deployAtEndRequested = false
 
 			if (deployAtEnd) {
 				DEPLOY_AT_END_DEPLOYMENT_REQUESTS.add(chartDeploymentRequest)
-				deployAtEndRequest = true
+				deployAtEndRequested = true
 			} else {
 				publishToRepo(chartDeploymentRequest)
 			}
@@ -109,7 +109,7 @@ class DeployMojo : AbstractMojo() {
 				synchronized(DEPLOY_AT_END_DEPLOYMENT_REQUESTS) {
 					DEPLOY_AT_END_DEPLOYMENT_REQUESTS.forEach { publishToRepo(it) }
 				}
-			} else if (deployAtEndRequest) {
+			} else if (deployAtEndRequested) {
 				log.info("Deploy helm chart: ${chartDeploymentRequest.chartName()} at end.")
 			}
 

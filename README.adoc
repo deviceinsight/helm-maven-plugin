@@ -90,7 +90,7 @@ that the correct docker image is used. An example snippet:
 |strictLint |`false` |If true, linting fails on warnings (see: <<goal-lint>>)
 |valuesFile | None | values file that should be used for goals <<goal-lint>>, <<goal-template>>
 |outputFile | target/test-classes/helm.yaml | output file for <<goal-template,template goal>>
-|deployAtEnd |`false` | Specify the helm chart should be deployed at the end of the multi-module build.
+|deployAtEnd |`false` | If true, the helm chart is deployed at the end of a multi-module Maven build. This option does not make sense for single-module Maven projects.
 
 |===
 
@@ -125,7 +125,7 @@ goal locally renders templates using the https://github.com/helm/helm/blob/maste
 
 == Example
 
-To use the `deployAtEnd` functionality it's mandatory to declare it only in the parent pom.
+To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plugin configuration in the parent pom.
 
 [source,xml]
 ....
