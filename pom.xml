@@ -23,6 +23,7 @@
 		<maven-artifact-transfer.version>0.10.1</maven-artifact-transfer.version>
 
 		<jackson.version>2.9.9</jackson.version>
+		<jackson-databind.version>2.9.9.2</jackson-databind.version>
 		<httpclient.version>4.5.6</httpclient.version>
 
 		<junit.version>4.12</junit.version>
@@ -83,7 +84,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.version}</version>
+			<version>${jackson-databind.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
