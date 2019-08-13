@@ -50,6 +50,11 @@ class TemplateMojo : AbstractHelmMojo() {
 
 		try {
 
+			if (!isChartFolderPresent()) {
+				log.warn("No sources found, skipping helm template.")
+				return
+			}
+
 			val helm = resolveHelmBinary()
 
 			val command = if (valuesFile != null) {

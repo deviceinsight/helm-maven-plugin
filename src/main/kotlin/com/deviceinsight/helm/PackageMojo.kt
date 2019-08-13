@@ -35,9 +35,6 @@ class PackageMojo : AbstractHelmMojo() {
 	@Parameter(property = "chartRepoUrl", required = true)
 	private lateinit var chartRepoUrl: String
 
-	@Parameter(property = "chartFolder", required = false)
-	private var chartFolder: String? = null
-
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
 
@@ -51,6 +48,11 @@ class PackageMojo : AbstractHelmMojo() {
 		}
 
 		try {
+
+			if (!isChartFolderPresent()) {
+				log.warn("No sources found skipping helm package.")
+				return
+			}
 
 			val helm = resolveHelmBinary()
 
@@ -125,8 +127,6 @@ class PackageMojo : AbstractHelmMojo() {
 			throw IllegalStateException("No helm files found in ${directory.absolutePath}")
 		}
 	}
-
-	private fun chartFolder() = chartFolder ?: "src/main/helm/${chartName()}"
 
 	private fun findPropertyValue(property: String): CharSequence? {
 		return when (property) {

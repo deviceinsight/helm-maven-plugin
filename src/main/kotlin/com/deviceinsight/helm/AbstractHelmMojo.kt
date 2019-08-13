@@ -63,6 +63,9 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	@Component
 	private lateinit var repositorySystem: RepositorySystem
 
+	@Parameter(property = "chartFolder", required = false)
+	private var chartFolder: String? = null
+
 	/**
 	 * Name of the chart
 	 */
@@ -118,6 +121,10 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	protected fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
 
 	protected fun chartName(): String = chartName ?: project.artifactId
+
+	protected fun chartFolder() = chartFolder ?: "src/main/helm/${chartName()}"
+
+	protected fun isChartFolderPresent() = File("${project.basedir}/${chartFolder()}").exists()
 
 	private fun downloadAndInstallHelm(artifact: Artifact, platformIdentifier: String) {
 
