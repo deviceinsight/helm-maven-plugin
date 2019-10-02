@@ -25,7 +25,7 @@
 		<jackson.version>2.9.10</jackson.version>
 		<httpclient.version>4.5.6</httpclient.version>
 
-		<junit.version>4.12</junit.version>
+		<junit.jupiter.version>5.5.2</junit.jupiter.version>
 		<assertj-core.version>3.11.1</assertj-core.version>
 
 		<dokka-maven-plugin.version>0.9.17</dokka-maven-plugin.version>
@@ -102,9 +102,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${junit.jupiter.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
