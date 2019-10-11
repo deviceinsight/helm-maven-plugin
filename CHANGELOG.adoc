@@ -1,5 +1,9 @@
 = Changelog
 
+== Unreleased
+
+* Replace gitflow plugin `jgitflow-maven-plugin` with https://github.com/aleksandr-m/gitflow-maven-plugin[gitflow-maven-plugin]
+
 == Version 2.1.1
 
 * Update dependency on `jackson-databind` to version 2.9.9 because of

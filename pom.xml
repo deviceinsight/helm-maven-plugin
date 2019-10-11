@@ -31,7 +31,7 @@
 		<dokka-maven-plugin.version>0.9.17</dokka-maven-plugin.version>
 		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-		<jgitflow-maven-plugin.version>1.0-m5.1</jgitflow-maven-plugin.version>
+		<gitflow-maven-plugin.version>1.13.0</gitflow-maven-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 	</properties>
@@ -186,13 +186,13 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>external.atlassian.jgitflow</groupId>
-				<artifactId>jgitflow-maven-plugin</artifactId>
-				<version>${jgitflow-maven-plugin.version}</version>
+				<groupId>com.amashchenko.maven.plugin</groupId>
+				<artifactId>gitflow-maven-plugin</artifactId>
+				<version>${gitflow-maven-plugin.version}</version>
 				<configuration>
-					<autoVersionSubmodules>true</autoVersionSubmodules>
-					<noDeploy>true</noDeploy>
-					<useReleaseProfile>false</useReleaseProfile>
+					<pushRemote>false</pushRemote>
+					<versionDigitToIncrement>1</versionDigitToIncrement>
+					<useSnapshotInHotfix>true</useSnapshotInHotfix>
 				</configuration>
 			</plugin>
 		</plugins>
