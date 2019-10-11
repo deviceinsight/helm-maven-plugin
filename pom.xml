@@ -22,11 +22,10 @@
 		<maven-project.version>2.2.1</maven-project.version>
 		<maven-artifact-transfer.version>0.10.1</maven-artifact-transfer.version>
 
-		<jackson.version>2.9.9</jackson.version>
-		<jackson-databind.version>2.9.9.3</jackson-databind.version>
+		<jackson.version>2.9.10</jackson.version>
 		<httpclient.version>4.5.6</httpclient.version>
 
-		<junit.version>4.12</junit.version>
+		<junit.jupiter.version>5.5.2</junit.jupiter.version>
 		<assertj-core.version>3.11.1</assertj-core.version>
 
 		<dokka-maven-plugin.version>0.9.17</dokka-maven-plugin.version>
@@ -83,11 +82,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>${jackson-databind.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
@@ -108,9 +102,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${junit.jupiter.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
