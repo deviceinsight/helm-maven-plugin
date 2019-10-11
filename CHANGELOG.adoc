@@ -2,7 +2,11 @@
 
 == Unreleased
 
-* Replace gitflow plugin `jgitflow-maven-plugin` with https://github.com/aleksandr-m/gitflow-maven-plugin[gitflow-maven-plugin]
+* Update dependency on `jackson-databind` to version 2.9.10 because of
+  https://nvd.nist.gov/vuln/detail/CVE-2019-14540[CVE-2019-14540] and
+  https://nvd.nist.gov/vuln/detail/CVE-2019-16335[CVE-2019-16335].
+* Replace gitflow plugin `jgitflow-maven-plugin` with
+  https://github.com/aleksandr-m/gitflow-maven-plugin[gitflow-maven-plugin].
 
 == Version 2.1.1
 
