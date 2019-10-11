@@ -22,7 +22,6 @@ import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
 import java.util.ArrayList
-import java.util.stream.Collectors
 
 
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
@@ -49,6 +48,11 @@ class LintMojo : AbstractHelmMojo() {
 		}
 
 		try {
+
+			if (!isChartFolderPresent()) {
+				log.warn("No sources found skipping helm lint.")
+				return
+			}
 
 			val helm = resolveHelmBinary()
 

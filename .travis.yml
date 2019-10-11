@@ -13,3 +13,5 @@ cache:
 install: /bin/true
 
 script: ./mvnw verify -B
+
+dist: trusty
