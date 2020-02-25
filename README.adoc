@@ -78,7 +78,7 @@ that the correct docker image is used. An example snippet:
 |Property |Default |Description
 
 |chartName |The Maven `artifactId` |The name of the chart
-|chartVersion |`"${project.model.version}"` |The version of the chart
+|chartVersion |`${project.model.version}` |The version of the chart
 |chartRepoUrl |`"https://kubernetes-helm.storage.googleapis.com/"` |The URL of the Chart repository where dependencies are required from and where charts should be published to
 |chartRepoUsername |None |The username for basic authentication against the chart repo
 |chartRepoPassword |None |The password for basic authentication against the chart repo
