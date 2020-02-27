@@ -48,7 +48,7 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	@Parameter(property = "helmVersion", required = true)
 	private lateinit var helmVersion: String
 
-	@Parameter(property = "helmDownloadUrl", defaultValue = "https://kubernetes-helm.storage.googleapis.com/")
+	@Parameter(property = "helmDownloadUrl", defaultValue = "https://get.helm.sh/")
 	private lateinit var helmDownloadUrl: URI
 
 	@Parameter(property = "chartVersion", required = false, defaultValue = "\${project.model.version}")
