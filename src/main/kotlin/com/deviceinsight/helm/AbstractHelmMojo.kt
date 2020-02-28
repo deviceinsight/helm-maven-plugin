@@ -119,6 +119,8 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 		}
 	}
 
+	protected fun majorHelmVersion(): Int = helmVersion.splitToSequence('.').first().toInt()
+
 	protected fun target() = File(project.build.directory).resolve("helm")
 
 	protected fun chartTarGzFile() = target().resolve("${chartName()}-${chartVersion}.tgz")
