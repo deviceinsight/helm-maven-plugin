@@ -87,6 +87,7 @@ that the correct docker image is used. An example snippet:
 |helmGroupId |`"com.deviceinsight.helm"` |The helm binary `groupId`
 |helmArtifactId |`"helm"` |The helm binary `artifactId`
 |helmVersion |None |The helm binary `version`
+|helmDownloadUrl |`"https://get.helm.sh/"` |The URL where the helm binary is downloaded from.
 |helm.skip |`false` |If true, execution will be skipped entirely
 |strictLint |`false` |If true, linting fails on warnings (see: <<goal-lint>>)
 |valuesFile | None | values file that should be used for goals <<goal-lint>>, <<goal-template>>

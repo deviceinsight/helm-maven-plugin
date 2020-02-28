@@ -67,7 +67,9 @@ class PackageMojo : AbstractHelmMojo() {
 
 			processHelmConfigFiles(targetHelmDir)
 
-			executeCmd("$helm init --client-only")
+			if (majorHelmVersion() < 3) {
+				executeCmd("$helm init --client-only")
+			}
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
 			executeCmd("$helm repo add chartRepo $chartRepoUrl")
 			executeCmd("$helm dependency update", directory = targetHelmDir)
