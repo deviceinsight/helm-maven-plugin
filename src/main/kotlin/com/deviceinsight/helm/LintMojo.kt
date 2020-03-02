@@ -63,7 +63,7 @@ class LintMojo : AbstractHelmMojo() {
 			}
 
 			if (valuesFile != null) {
-				params.add("--values ${project.basedir.resolve(valuesFile!!).absolutePath}")
+				params.add("--values \"${project.basedir.resolve(valuesFile!!).absolutePath}\"")
 			}
 
 			val allParams = params.joinToString(" ")
