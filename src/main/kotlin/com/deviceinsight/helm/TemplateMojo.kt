@@ -59,7 +59,7 @@ class TemplateMojo : AbstractHelmMojo() {
 
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				"$helm template --values $valuesFilePath ${chartName()}"
+				"$helm template --values \"$valuesFilePath\" ${chartName()}"
 			} else {
 				"$helm template ${chartName()}"
 			}

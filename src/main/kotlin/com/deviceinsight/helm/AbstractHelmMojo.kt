@@ -48,8 +48,11 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	@Parameter(property = "helmVersion", required = true)
 	private lateinit var helmVersion: String
 
-	@Parameter(property = "helmDownloadUrl", defaultValue = "https://kubernetes-helm.storage.googleapis.com/")
+	@Parameter(property = "helmDownloadUrl", defaultValue = "https://get.helm.sh/")
 	private lateinit var helmDownloadUrl: URI
+
+	@Parameter(property = "chartVersion", required = false, defaultValue = "\${project.model.version}")
+	protected lateinit var chartVersion: String
 
 	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
 	protected lateinit var project: MavenProject
@@ -116,9 +119,11 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 		}
 	}
 
+	protected fun majorHelmVersion(): Int = helmVersion.splitToSequence('.').first().toInt()
+
 	protected fun target() = File(project.build.directory).resolve("helm")
 
-	protected fun chartTarGzFile() = target().resolve("${chartName()}-${project.version}.tgz")
+	protected fun chartTarGzFile() = target().resolve("${chartName()}-${chartVersion}.tgz")
 
 	protected fun chartName(): String = chartName ?: project.artifactId
 

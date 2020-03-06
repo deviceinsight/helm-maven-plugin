@@ -2,6 +2,10 @@
 
 == Unreleased
 
+* Support overriding the chart version using the configuration parameter `chartVersion`. If `chartVersion` is not
+  configured, the value for `project.model.version` will be used instead.
+* Add support for Helm 3.
+
 == Version 2.2.0
 
 * Update dependency on `jackson-databind` to version 2.9.10 because of
