@@ -83,7 +83,7 @@ class PackageMojo : AbstractHelmMojo() {
 
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
 			executeCmd("$helm repo add chartRepo $chartRepoUrl $authParams")
-			executeCmd("$helm dependency update ", directory = targetHelmDir)
+			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()} --version $chartVersion")
 
 			ensureChartFileExists()
