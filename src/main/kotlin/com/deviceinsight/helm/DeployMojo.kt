@@ -52,6 +52,9 @@ class DeployMojo : AbstractMojo() {
 	@Parameter(property = "chartName", required = false)
 	private var chartName: String? = null
 
+	@Parameter(property = "chartVersion", required = false)
+	private lateinit var chartVersion: String
+
 	@Parameter(property = "chartRepoUrl", required = false)
 	private var chartRepoUrl: String? = null
 
@@ -86,7 +89,7 @@ class DeployMojo : AbstractMojo() {
 
 		try {
 
-			val chartDeploymentRequest = ChartDeploymentRequest(chartName, chartRepoUrl, chartRepoUsername,
+			val chartDeploymentRequest = ChartDeploymentRequest(chartName, chartVersion, chartRepoUrl, chartRepoUsername,
 				chartRepoPassword, skipSnapshots, project)
 
 			if (!deployAtEnd && (skipSnapshots && chartDeploymentRequest.isSnapshotVersion())) {
@@ -189,19 +192,20 @@ class DeployMojo : AbstractMojo() {
 	}
 
 	private fun chartTarGzFile(chartDeploymentRequest: ChartDeploymentRequest) = target(chartDeploymentRequest)
-		.resolve("${chartDeploymentRequest.chartName()}-${chartDeploymentRequest.project.version}.tgz")
+		.resolve("${chartDeploymentRequest.chartName()}-${chartDeploymentRequest.chartVersion()}.tgz")
 
 	private fun target(chartDeploymentRequest: ChartDeploymentRequest) =
 		File(chartDeploymentRequest.project.build.directory).resolve("helm")
 
 }
 
-data class ChartDeploymentRequest(private val chartName: String?, val chartRepoUrl: String?,
-								  val chartRepoUsername: String?, val chartRepoPassword: String?,
-								  val skipSnapshots: Boolean, val project: MavenProject) {
+data class ChartDeploymentRequest(private val chartName: String?, private val chartVersion: String?,
+								  val chartRepoUrl: String?, val chartRepoUsername: String?,
+								  val chartRepoPassword: String?, val skipSnapshots: Boolean,
+								  val project: MavenProject) {
 
 	fun chartName(): String = chartName ?: project.artifactId
-
+	fun chartVersion(): String = chartVersion ?: project.version
 	fun isSnapshotVersion(): Boolean = project.version.contains("SNAPSHOT")
 
 }
