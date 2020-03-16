@@ -38,6 +38,11 @@ class PackageMojo : AbstractHelmMojo() {
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
 
+	@Parameter(property = "chartRepoUsername", required = false)
+	private var chartRepoUsername: String? = null
+
+	@Parameter(property = "chartRepoPassword", required = false)
+	private var chartRepoPassword: String? = null
 
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
@@ -70,8 +75,14 @@ class PackageMojo : AbstractHelmMojo() {
 			if (majorHelmVersion() < 3) {
 				executeCmd("$helm init --client-only")
 			}
+
+			var authParams = ""
+			if (chartRepoUsername != null && chartRepoPassword != null) {
+				authParams = "--username ${chartRepoUsername} --password ${chartRepoPassword}"
+			}
+
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
-			executeCmd("$helm repo add chartRepo $chartRepoUrl")
+			executeCmd("$helm repo add chartRepo $chartRepoUrl $authParams")
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()} --version $chartVersion")
 
