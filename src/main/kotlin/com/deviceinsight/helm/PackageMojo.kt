@@ -134,6 +134,7 @@ class PackageMojo : AbstractHelmMojo() {
 		return when (property) {
 			"project.version" -> project.version
 			"artifactId" -> project.artifactId
+			in System.getProperties().keys -> System.getProperty(property)
 			else -> project.properties.getProperty(property)
 		}
 	}
