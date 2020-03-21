@@ -19,7 +19,7 @@ package com.deviceinsight.helm
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpDelete
-import org.apache.http.client.methods.HttpPost
+import org.apache.http.client.methods.RequestBuilder
 import org.apache.http.entity.FileEntity
 import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.client.CloseableHttpClient
@@ -63,6 +63,9 @@ class DeployMojo : AbstractMojo() {
 
 	@Parameter(property = "chartRepoPassword", required = false)
 	private var chartRepoPassword: String? = null
+
+	@Parameter(property = "chartDeployMethod", required = false, defaultValue = "POST")
+	private var chartDeployMethod: String? = null
 
 	@Parameter(property = "skipSnapshots", required = false, defaultValue = "true")
 	private var skipSnapshots: Boolean = true
@@ -147,26 +150,28 @@ class DeployMojo : AbstractMojo() {
 
 		val chartTarGzFile = chartTarGzFile(chartDeploymentRequest)
 
-		val url = "${chartDeploymentRequest.chartRepoUrl}/api/charts"
+		val url = chartDeploymentRequest.chartRepoUrl
 
 		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
-			val httpPost = HttpPost(url).apply { entity = FileEntity(chartTarGzFile) }
-			httpClient.execute(httpPost).use { response ->
+			val request = RequestBuilder
+				.create(chartDeployMethod)
+				.setUri(chartDeploymentRequest.chartRepoUrl)
+				.setEntity(FileEntity(chartTarGzFile))
+				.build()
+			httpClient.execute(request).use { response ->
 				val statusCode = response.statusLine.statusCode
 				if (statusCode != 201) {
-					throw RuntimeException("Unexpected status code when POSTing to chart repo $url: $statusCode")
+					throw RuntimeException("Unexpected status code when executing ${chartDeployMethod} request to chart repo $url: $statusCode")
 				}
-				log.info("$chartTarGzFile posted successfully")
+				log.info("$chartTarGzFile uploaded successfully")
 			}
 		}
 	}
 
 	private fun removeChartIfExists(chartDeploymentRequest: ChartDeploymentRequest) {
 
-		val url = "${chartDeploymentRequest.chartRepoUrl}/api/charts/${chartDeploymentRequest.chartName()}/${chartDeploymentRequest.project.version}"
-
 		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
-			httpClient.execute(HttpDelete(url)).use { response ->
+			httpClient.execute(HttpDelete(chartDeploymentRequest.chartRepoUrl)).use { response ->
 				if (response.statusLine.statusCode == 200) {
 					log.info("Existing chart removed successfully")
 				}
