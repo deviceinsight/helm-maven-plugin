@@ -2,6 +2,8 @@
 
 == Unreleased
 
+== Version 2.4.0
+
 * Support other chart registries like JFrog Artifactory by introducing new optional configuration parameters:
 ** `chartPublishUrl`
 ** `chartPublishMethod`
