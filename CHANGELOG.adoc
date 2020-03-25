@@ -6,6 +6,7 @@
 ** `chartPublishUrl`
 ** `chartPublishMethod`
 ** `chartDeleteUrl`
+* Support chart registries that need authentication for pulling images.
 
 == Version 2.3.0
 
