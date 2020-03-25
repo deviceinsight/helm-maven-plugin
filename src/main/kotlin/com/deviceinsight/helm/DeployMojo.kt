@@ -41,9 +41,10 @@ import java.util.concurrent.atomic.AtomicInteger
 class DeployMojo : AbstractMojo() {
 
 	companion object {
-		private val DEPLOY_AT_END_DEPLOYMENT_REQUESTS: MutableList<ChartDeploymentRequest> =
+		private val deployAtEndDeploymentRequests: MutableList<ChartDeploymentRequest> =
 			Collections.synchronizedList(mutableListOf())
-		private val READY_PROJECTS_COUNTER: AtomicInteger = AtomicInteger()
+
+		private val readyProjectsCounter: AtomicInteger = AtomicInteger()
 	}
 
 	/**
@@ -58,15 +59,20 @@ class DeployMojo : AbstractMojo() {
 	@Parameter(property = "chartRepoUrl", required = false)
 	private var chartRepoUrl: String? = null
 
+	@Parameter(property = "chartPublishUrl", required = false)
+	private var chartPublishUrl: String? = null
+
+	@Parameter(property = "chartPublishMethod", required = false, defaultValue = "POST")
+	private var chartPublishMethod: String = "POST"
+
+	@Parameter(property = "chartDeleteUrl", required = false)
+	private var chartDeleteUrl: String? = null
+
 	@Parameter(property = "chartRepoUsername", required = false)
 	private var chartRepoUsername: String? = null
 
 	@Parameter(property = "chartRepoPassword", required = false)
 	private var chartRepoPassword: String? = null
-
-	@Parameter(property = "chartDeployMethod", required = false, defaultValue = "POST")
-	private var chartDeployMethod: String? = null
-
 	@Parameter(property = "skipSnapshots", required = false, defaultValue = "true")
 	private var skipSnapshots: Boolean = true
 
@@ -92,8 +98,9 @@ class DeployMojo : AbstractMojo() {
 
 		try {
 
-			val chartDeploymentRequest = ChartDeploymentRequest(chartName, chartVersion, chartRepoUrl, chartRepoUsername,
-				chartRepoPassword, skipSnapshots, project)
+			val chartDeploymentRequest =
+				ChartDeploymentRequest(chartName, chartVersion, chartPublishMethod, chartRepoUrl, chartPublishUrl,
+					chartDeleteUrl, chartRepoUsername, chartRepoPassword, skipSnapshots, project)
 
 			if (!deployAtEnd && (skipSnapshots && chartDeploymentRequest.isSnapshotVersion())) {
 				log.info("Version contains SNAPSHOT and 'skipSnapshots' option is enabled. Not publishing.")
@@ -103,17 +110,17 @@ class DeployMojo : AbstractMojo() {
 			var deployAtEndRequested = false
 
 			if (deployAtEnd) {
-				DEPLOY_AT_END_DEPLOYMENT_REQUESTS.add(chartDeploymentRequest)
+				deployAtEndDeploymentRequests.add(chartDeploymentRequest)
 				deployAtEndRequested = true
 			} else {
 				publishToRepo(chartDeploymentRequest)
 			}
 
-			val projectsReady = READY_PROJECTS_COUNTER.incrementAndGet() == reactorProjects.size
+			val projectsReady = readyProjectsCounter.incrementAndGet() == reactorProjects.size
 
 			if (projectsReady) {
-				synchronized(DEPLOY_AT_END_DEPLOYMENT_REQUESTS) {
-					DEPLOY_AT_END_DEPLOYMENT_REQUESTS.forEach { publishToRepo(it) }
+				synchronized(deployAtEndDeploymentRequests) {
+					deployAtEndDeploymentRequests.forEach { publishToRepo(it) }
 				}
 			} else if (deployAtEndRequested) {
 				log.info("Deploy helm chart: ${chartDeploymentRequest.chartName()} at end.")
@@ -140,7 +147,7 @@ class DeployMojo : AbstractMojo() {
 
 	private fun chartFileExists(chartDeploymentRequest: ChartDeploymentRequest): Boolean {
 
-		val chartTarGzFile = chartTarGzFile(chartDeploymentRequest)
+		val chartTarGzFile = chartDeploymentRequest.chartTarGzFile()
 		log.debug("Tar file location: ${chartTarGzFile.absolutePath}.")
 
 		return chartTarGzFile.exists()
@@ -148,20 +155,21 @@ class DeployMojo : AbstractMojo() {
 
 	private fun publishChart(chartDeploymentRequest: ChartDeploymentRequest) {
 
-		val chartTarGzFile = chartTarGzFile(chartDeploymentRequest)
-
-		val url = chartDeploymentRequest.chartRepoUrl
+		val chartTarGzFile = chartDeploymentRequest.chartTarGzFile()
 
 		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
+
 			val request = RequestBuilder
-				.create(chartDeployMethod)
-				.setUri(chartDeploymentRequest.chartRepoUrl)
+				.create(chartDeploymentRequest.chartPublishMethod)
+				.setUri(chartDeploymentRequest.chartPublishUrl())
 				.setEntity(FileEntity(chartTarGzFile))
 				.build()
+
 			httpClient.execute(request).use { response ->
 				val statusCode = response.statusLine.statusCode
 				if (statusCode != 201) {
-					throw RuntimeException("Unexpected status code when executing ${chartDeployMethod} request to chart repo $url: $statusCode")
+					throw RuntimeException("Unexpected status code when executing $chartPublishMethod request to " +
+						"chart repo ${chartDeploymentRequest.chartPublishUrl()}: $statusCode")
 				}
 				log.info("$chartTarGzFile uploaded successfully")
 			}
@@ -171,7 +179,7 @@ class DeployMojo : AbstractMojo() {
 	private fun removeChartIfExists(chartDeploymentRequest: ChartDeploymentRequest) {
 
 		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
-			httpClient.execute(HttpDelete(chartDeploymentRequest.chartRepoUrl)).use { response ->
+			httpClient.execute(HttpDelete(chartDeploymentRequest.chartDeleteUrl())).use { response ->
 				if (response.statusLine.statusCode == 200) {
 					log.info("Existing chart removed successfully")
 				}
@@ -196,21 +204,26 @@ class DeployMojo : AbstractMojo() {
 
 	}
 
-	private fun chartTarGzFile(chartDeploymentRequest: ChartDeploymentRequest) = target(chartDeploymentRequest)
-		.resolve("${chartDeploymentRequest.chartName()}-${chartDeploymentRequest.chartVersion()}.tgz")
-
-	private fun target(chartDeploymentRequest: ChartDeploymentRequest) =
-		File(chartDeploymentRequest.project.build.directory).resolve("helm")
-
 }
 
 data class ChartDeploymentRequest(private val chartName: String?, private val chartVersion: String?,
-								  val chartRepoUrl: String?, val chartRepoUsername: String?,
-								  val chartRepoPassword: String?, val skipSnapshots: Boolean,
-								  val project: MavenProject) {
+								  val chartPublishMethod: String, private val chartRepoUrl: String?,
+								  private val chartPublishUrl: String?, private val chartDeleteUrl: String?,
+								  val chartRepoUsername: String?, val chartRepoPassword: String?,
+								  val skipSnapshots: Boolean, val project: MavenProject) {
 
 	fun chartName(): String = chartName ?: project.artifactId
-	fun chartVersion(): String = chartVersion ?: project.version
-	fun isSnapshotVersion(): Boolean = project.version.contains("SNAPSHOT")
+
+	private fun chartVersion(): String = chartVersion ?: project.version
+
+	fun isSnapshotVersion(): Boolean = chartVersion().endsWith("-SNAPSHOT")
+
+	fun chartPublishUrl(): String = chartPublishUrl ?: "$chartRepoUrl/api/charts"
+
+	fun chartDeleteUrl(): String = chartDeleteUrl ?: "$chartRepoUrl/api/charts/${chartName()}/${chartVersion()}"
+
+	fun chartTarGzFile() = target().resolve("${chartName()}-${chartVersion()}.tgz")
+
+	private fun target() = File(project.build.directory).resolve("helm")
 
 }

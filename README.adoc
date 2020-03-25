@@ -6,7 +6,7 @@
 image:{img-build-status}[Build Status Badge,link={uri-build-status}]
 
 A Maven plugin that makes Maven properties available in your Helm Charts. It can be used to automatically package your
-Helm Chart, render it and upload it to a https://chartmuseum.com/[Chart Museum].
+Helm Chart, render it and upload it to a Helm repository like https://chartmuseum.com/[ChartMuseum].
 
 == Usage
 
@@ -80,6 +80,9 @@ that the correct docker image is used. An example snippet:
 |chartName |The Maven `artifactId` |The name of the chart
 |chartVersion |`${project.model.version}` |The version of the chart
 |chartRepoUrl |`"https://kubernetes-helm.storage.googleapis.com/"` |The URL of the Chart repository where dependencies are required from and where charts should be published to
+|chartPublishUrl |`${chartRepoUrl}/api/charts` |The URL that will be used for publishing the chart. The default value will work if `chartRepoUrl` refers to a ChartMuseum.
+|chartPublishMethod |"POST" |The HTTP method that will be used for publishing requests
+|chartDeleteUrl |`${chartRepoUrl}/api/charts/${chartName}/${chartVersion}` |The URL that will be used for deleting a previous version of the chart. This is used for updating SNAPSHOT versions. The default value will work if `chartRepoUrl` refers to a ChartMuseum.
 |chartRepoUsername |None |The username for basic authentication against the chart repo
 |chartRepoPassword |None |The password for basic authentication against the chart repo
 |chartFolder |`"src/main/helm/<chartName>"` |The location of the chart files (e.g. Chart.yaml).
