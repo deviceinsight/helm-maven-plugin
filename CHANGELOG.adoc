@@ -2,6 +2,11 @@
 
 == Unreleased
 
+* Support other chart registries like JFrog Artifactory by introducing new optional configuration parameters:
+** `chartPublishUrl`
+** `chartPublishMethod`
+** `chartDeleteUrl`
+
 == Version 2.3.0
 
 * Support overriding the chart version using the configuration parameter `chartVersion`. If `chartVersion` is not
