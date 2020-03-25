@@ -76,9 +76,10 @@ class PackageMojo : AbstractHelmMojo() {
 				executeCmd("$helm init --client-only")
 			}
 
-			var authParams = ""
-			if (chartRepoUsername != null && chartRepoPassword != null) {
-				authParams = "--username ${chartRepoUsername} --password ${chartRepoPassword}"
+			val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
+				"--username '$chartRepoUsername' --password '$chartRepoPassword'"
+			} else {
+				""
 			}
 
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
