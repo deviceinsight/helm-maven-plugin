@@ -7,6 +7,7 @@
 ** `chartPublishMethod`
 ** `chartDeleteUrl`
 * Support chart registries that need authentication for pulling images.
+* Fix a problem with quoted file path arguments on Linux by only quoting paths that contain a space.
 
 == Version 2.3.0
 

@@ -179,4 +179,11 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	private fun isHelmBinary(entry: ZipEntry): Boolean =
 		!entry.isDirectory && (entry.name.endsWith("helm") || entry.name.endsWith("helm.exe"))
 
+	protected fun quoteFilePath(filePath: String): String =
+		if (filePath.contains(Regex("\\s"))) {
+			"\"$filePath\""
+		} else {
+			filePath
+		}
+
 }

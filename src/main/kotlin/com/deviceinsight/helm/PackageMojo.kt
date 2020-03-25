@@ -77,13 +77,13 @@ class PackageMojo : AbstractHelmMojo() {
 			}
 
 			val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
-				"--username '$chartRepoUsername' --password '$chartRepoPassword'"
+				" --username $chartRepoUsername --password $chartRepoPassword"
 			} else {
 				""
 			}
 
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
-			executeCmd("$helm repo add chartRepo $chartRepoUrl $authParams")
+			executeCmd("$helm repo add chartRepo $chartRepoUrl$authParams")
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()} --version $chartVersion")
 

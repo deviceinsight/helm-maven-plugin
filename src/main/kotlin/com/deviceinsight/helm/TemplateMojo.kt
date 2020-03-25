@@ -59,7 +59,7 @@ class TemplateMojo : AbstractHelmMojo() {
 
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				"$helm template --values \"$valuesFilePath\" ${chartName()}"
+				"$helm template --values ${quoteFilePath(valuesFilePath)} ${chartName()}"
 			} else {
 				"$helm template ${chartName()}"
 			}
@@ -75,7 +75,7 @@ class TemplateMojo : AbstractHelmMojo() {
 
 			executeCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
 
-			log.info("Rendered helm template to ${file.absolutePath}")
+			log.info("Rendered helm template to '${file.absolutePath}'")
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error rendering helm templates: ${e.message}", e)
