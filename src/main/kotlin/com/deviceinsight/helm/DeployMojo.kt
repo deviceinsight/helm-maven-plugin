@@ -54,7 +54,7 @@ class DeployMojo : AbstractMojo() {
 	private var chartName: String? = null
 
 	@Parameter(property = "chartVersion", required = false)
-	private lateinit var chartVersion: String
+	private var chartVersion: String? = null
 
 	@Parameter(property = "chartRepoUrl", required = false)
 	private var chartRepoUrl: String? = null
