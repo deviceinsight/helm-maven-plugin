@@ -1,6 +1,11 @@
 = Changelog
 
-== Unreleased
+== Version 2.4.1
+
+* Fix a bug where `chartVersion` always had to be configured explicitly. After this fix, `chartVersion` correctly falls
+  back to `project.model.version` again.
+
+== Version 2.4.0
 
 * Support other chart registries like JFrog Artifactory by introducing new optional configuration parameters:
 ** `chartPublishUrl`
