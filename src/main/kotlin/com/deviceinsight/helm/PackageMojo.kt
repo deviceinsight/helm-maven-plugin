@@ -32,8 +32,8 @@ class PackageMojo : AbstractHelmMojo() {
 		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*)}""")
 	}
 
-	@Parameter(property = "chartRepoUrl", required = true)
-	private lateinit var chartRepoUrl: String
+	@Parameter(property = "chartRepoUrl", required = false)
+	private var chartRepoUrl: String? = null
 
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
@@ -76,14 +76,15 @@ class PackageMojo : AbstractHelmMojo() {
 				executeCmd("$helm init --client-only")
 			}
 
-			val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
-				" --username $chartRepoUsername --password $chartRepoPassword"
-			} else {
-				""
-			}
-
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
-			executeCmd("$helm repo add chartRepo $chartRepoUrl$authParams")
+			if(chartRepoUrl != null) {
+				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
+					" --username $chartRepoUsername --password $chartRepoPassword"
+				} else {
+					""
+				}
+				executeCmd("$helm repo add chartRepo $chartRepoUrl$authParams")
+			}
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()} --version $chartVersion")
 
@@ -143,12 +144,15 @@ class PackageMojo : AbstractHelmMojo() {
 	}
 
 	private fun findPropertyValue(property: String): CharSequence? {
-		return when (property) {
+		val result = when (property) {
 			"project.version" -> project.version
 			"artifactId" -> project.artifactId
+			"project.name" -> project.name
 			in System.getProperties().keys -> System.getProperty(property)
 			else -> project.properties.getProperty(property)
 		}
+		log.debug("property: '$property' resolved as: '$result'")
+		return result
 	}
 
 }
