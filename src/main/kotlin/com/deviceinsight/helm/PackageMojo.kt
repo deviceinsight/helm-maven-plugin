@@ -77,7 +77,7 @@ class PackageMojo : AbstractHelmMojo() {
 			}
 
 			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
-			if(chartRepoUrl != null) {
+			if (chartRepoUrl != null) {
 				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
 					" --username $chartRepoUsername --password $chartRepoPassword"
 				} else {
@@ -123,7 +123,7 @@ class PackageMojo : AbstractHelmMojo() {
 					lines.map { line ->
 						PLACEHOLDER_REGEX.replace(line) { matchResult ->
 							val property = matchResult.groupValues[1]
-							val propertyValue = findPropertyValue(property)
+							val propertyValue = findPropertyValue(property, targetFile.absolutePath)
 
 							when (propertyValue) {
 								null -> matchResult.groupValues[0]
@@ -143,7 +143,7 @@ class PackageMojo : AbstractHelmMojo() {
 		}
 	}
 
-	private fun findPropertyValue(property: String): CharSequence? {
+	private fun findPropertyValue(property: String, fileName: String): CharSequence? {
 		val result = when (property) {
 			"project.version" -> project.version
 			"artifactId" -> project.artifactId
@@ -151,7 +151,11 @@ class PackageMojo : AbstractHelmMojo() {
 			in System.getProperties().keys -> System.getProperty(property)
 			else -> project.properties.getProperty(property)
 		}
-		log.debug("property: '$property' resolved as: '$result'")
+		if (result == null) {
+			throw IllegalStateException("Could not resolve property: '$property' used in file: '$fileName'")
+		} else {
+			log.debug("Resolved property: '$property' as: '$result'")
+		}
 		return result
 	}
 
