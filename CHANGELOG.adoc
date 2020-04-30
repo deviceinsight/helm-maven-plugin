@@ -1,11 +1,14 @@
 = Changelog
 
+== Version 2.5.0
+
+* Make chartRepoUrl optional
+* Add logging for property resolution
+
 == Version 2.4.1
 
 * Fix a bug where `chartVersion` always had to be configured explicitly. After this fix, `chartVersion` correctly falls
   back to `project.model.version` again.
-
-== Version 2.4.0
 
 == Version 2.4.0
 
