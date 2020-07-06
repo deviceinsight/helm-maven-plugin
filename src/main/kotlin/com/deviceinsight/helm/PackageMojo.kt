@@ -29,7 +29,7 @@ import java.io.File
 class PackageMojo : AbstractHelmMojo() {
 
 	companion object {
-		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*)}""")
+		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*?)\}""")
 	}
 
 	@Parameter(property = "chartRepoUrl", required = false)
