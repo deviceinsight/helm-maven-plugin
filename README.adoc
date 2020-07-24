@@ -44,7 +44,7 @@ Add the following to your `pom.xml`
 ....
 
 In the same Maven module, put your helm charts into `src/main/helm/<chartName>`. In the `Chart.yaml`, you can use the
-`${artifactId}` and `${project.version}` Maven placeholders. You can also use Maven properties.
+`${artifactId}`, `${project.version}`, and `${project.name}` Maven placeholders. You can also use Maven properties.
 
 An example for a `Chart.yaml` is:
 
