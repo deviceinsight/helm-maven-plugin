@@ -2,9 +2,10 @@
 
 == Version 2.5.0
 
-* Make chartRepoUrl optional
+* Make `chartRepoUrl` optional
 * Add logging for property resolution
 * Limit property substitution in `package` mojo to the file extensions "json", "tpl", "yml" and "yaml"
+* Allow multiple property substitutions on a single line
 
 == Version 2.4.1
 
