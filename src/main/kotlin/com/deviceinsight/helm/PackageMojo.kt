@@ -30,6 +30,7 @@ class PackageMojo : AbstractHelmMojo() {
 
 	companion object {
 		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*)}""")
+		private val SUBSTITUTED_EXTENSIONS = setOf("json", "tpl", "yml", "yaml")
 	}
 
 	@Parameter(property = "chartRepoUrl", required = false)
@@ -116,6 +117,11 @@ class PackageMojo : AbstractHelmMojo() {
 			log.debug("Copying to ${targetFile.absolutePath}")
 			targetFile.apply {
 				parentFile.mkdirs()
+			}
+
+			if (!SUBSTITUTED_EXTENSIONS.contains(file.extension)) {
+				file.copyTo(targetFile, true)
+				return@onEach
 			}
 
 			targetFile.bufferedWriter().use { writer ->
