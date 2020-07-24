@@ -119,7 +119,7 @@ class PackageMojo : AbstractHelmMojo() {
 				parentFile.mkdirs()
 			}
 
-			if (!SUBSTITUTED_EXTENSIONS.contains(file.extension)) {
+			if (!SUBSTITUTED_EXTENSIONS.contains(file.extension.toLowerCase())) {
 				file.copyTo(targetFile, true)
 				return@onEach
 			}
@@ -129,9 +129,8 @@ class PackageMojo : AbstractHelmMojo() {
 					lines.map { line ->
 						PLACEHOLDER_REGEX.replace(line) { matchResult ->
 							val property = matchResult.groupValues[1]
-							val propertyValue = findPropertyValue(property, targetFile.absolutePath)
 
-							when (propertyValue) {
+							when (val propertyValue = findPropertyValue(property, targetFile.absolutePath)) {
 								null -> matchResult.groupValues[0]
 								else -> propertyValue
 							}
