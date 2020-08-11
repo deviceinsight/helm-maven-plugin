@@ -189,6 +189,9 @@ class DeployMojo : AbstractMojo() {
 
 	private fun createChartRepoClient(chartDeploymentRequest: ChartDeploymentRequest): CloseableHttpClient {
 		val clientBuilder = HttpClientBuilder.create()
+			// cookie management is disabled to avoid parsing errors of the Set-Cookie header
+			// see https://github.com/deviceinsight/helm-maven-plugin/issues/45
+			.disableCookieManagement()
 
 		if (chartDeploymentRequest.chartRepoUsername != null && chartDeploymentRequest.chartRepoPassword != null) {
 			clientBuilder.setDefaultCredentialsProvider(BasicCredentialsProvider().apply {

@@ -1,5 +1,10 @@
 = Changelog
 
+== Version 2.5.1
+
+* Ignore `Set-Cookie` header of responses in the `deploy` goal
+* Update dependency versions
+
 == Version 2.5.0
 
 * Make `chartRepoUrl` optional
