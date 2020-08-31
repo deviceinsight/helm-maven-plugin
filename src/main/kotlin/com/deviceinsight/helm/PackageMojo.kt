@@ -157,7 +157,7 @@ class PackageMojo : AbstractHelmMojo() {
 			else -> project.properties.getProperty(property)
 		}
 		if (result == null) {
-			throw IllegalStateException("Could not resolve property: '$property' used in file: '$fileName'")
+			log.warn("Could not resolve property: '$property' used in file: '$fileName'")
 		} else {
 			log.debug("Resolved property: '$property' as: '$result'")
 		}
