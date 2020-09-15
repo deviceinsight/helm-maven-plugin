@@ -167,7 +167,7 @@ class DeployMojo : AbstractMojo() {
 
 			httpClient.execute(request).use { response ->
 				val statusCode = response.statusLine.statusCode
-				if (statusCode != 201) {
+				if ( (statusCode != 200) || (statusCode != 201) ) {
 					throw RuntimeException("Unexpected status code when executing $chartPublishMethod request to " +
 						"chart repo ${chartDeploymentRequest.chartPublishUrl()}: $statusCode")
 				}
