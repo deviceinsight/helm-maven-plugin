@@ -45,6 +45,8 @@ class PackageMojo : AbstractHelmMojo() {
 	@Parameter(property = "chartRepoPassword", required = false)
 	private var chartRepoPassword: String? = null
 
+	private val incubatorRepository = "https://charts.helm.sh/incubator"
+
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
 
@@ -77,7 +79,7 @@ class PackageMojo : AbstractHelmMojo() {
 				executeCmd("$helm init --client-only")
 			}
 
-			executeCmd("$helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com")
+			executeCmd("$helm repo add incubator $incubatorRepository")
 			if (chartRepoUrl != null) {
 				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
 					" --username $chartRepoUsername --password $chartRepoPassword"
