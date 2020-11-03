@@ -1,5 +1,9 @@
 = Changelog
 
+== Version 2.7.1
+
+* Fix inverted status check which _fails_ for any 2xx HTTP status
+
 == Version 2.7.0
 
 * Accept any 2xx HTTP status code when deploying Helm charts
