@@ -3,6 +3,7 @@
 == Version 2.7.0
 
 * Accept any 2xx HTTP status code when deploying Helm charts
+* Use new incubator repository hosted at https://charts.helm.sh/incubator
 
 == Version 2.6.0
 
