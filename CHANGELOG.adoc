@@ -1,5 +1,9 @@
 = Changelog
 
+== Version 2.8.0
+
+* Support configuring the URL to the incubator repository via `incubatorRepoUrl` and allow to disable the incubator repository via `addIncubatorRepo`
+
 == Version 2.7.1
 
 * Fix inverted status check which _fails_ for any 2xx HTTP status
