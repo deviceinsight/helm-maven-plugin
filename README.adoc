@@ -20,11 +20,11 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>2.1.0</version>
+      <version>2.8.0</version>
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://kubernetes-charts.storage.googleapis.com/</chartRepoUrl>
-        <helmVersion>2.13.0</helmVersion>
+        <helmVersion>3.4.2</helmVersion>
         <strictLint>true</strictLint>
         <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
       </configuration>
@@ -79,7 +79,9 @@ that the correct docker image is used. An example snippet:
 
 |chartName |The Maven `artifactId` |The name of the chart
 |chartVersion |`${project.model.version}` |The version of the chart
-|chartRepoUrl |`"https://kubernetes-helm.storage.googleapis.com/"` |The URL of the Chart repository where dependencies are required from and where charts should be published to
+|chartRepoUrl |`null` |The URL of the Chart repository where dependencies are required from and where charts should be published to
+|incubatorRepoUrl |`https://charts.helm.sh/incubator` |The URL to the incubator Chart repository
+|addIncubatorRepo |`true` |Whether the repository defined in `incubatorRepoUrl` should be added when running the package goal
 |chartPublishUrl |`${chartRepoUrl}/api/charts` |The URL that will be used for publishing the chart. The default value will work if `chartRepoUrl` refers to a ChartMuseum.
 |chartPublishMethod |"POST" |The HTTP method that will be used for publishing requests
 |chartDeleteUrl |`${chartRepoUrl}/api/charts/${chartName}/${chartVersion}` |The URL that will be used for deleting a previous version of the chart. This is used for updating SNAPSHOT versions. The default value will work if `chartRepoUrl` refers to a ChartMuseum.

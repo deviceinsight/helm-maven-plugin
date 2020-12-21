@@ -29,7 +29,7 @@ import java.io.File
 class PackageMojo : AbstractHelmMojo() {
 
 	companion object {
-		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*?)\}""")
+		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*?)}""")
 		private val SUBSTITUTED_EXTENSIONS = setOf("json", "tpl", "yml", "yaml")
 	}
 
@@ -45,7 +45,11 @@ class PackageMojo : AbstractHelmMojo() {
 	@Parameter(property = "chartRepoPassword", required = false)
 	private var chartRepoPassword: String? = null
 
-	private val incubatorRepository = "https://charts.helm.sh/incubator"
+	@Parameter(property = "incubatorRepoUrl", defaultValue = "https://charts.helm.sh/incubator")
+	private var incubatorRepoUrl: String = "https://charts.helm.sh/incubator"
+
+	@Parameter(property = "addIncubatorRepo", defaultValue = "true")
+	private var addIncubatorRepo: Boolean = true
 
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
@@ -79,7 +83,9 @@ class PackageMojo : AbstractHelmMojo() {
 				executeCmd("$helm init --client-only")
 			}
 
-			executeCmd("$helm repo add incubator $incubatorRepository")
+			if (addIncubatorRepo) {
+				executeCmd("$helm repo add incubator $incubatorRepoUrl")
+			}
 			if (chartRepoUrl != null) {
 				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
 					" --username $chartRepoUsername --password $chartRepoPassword"
