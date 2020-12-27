@@ -44,7 +44,7 @@ object PlatformDetector {
 			osArch == "x86_64" || osArch == "amd64" -> "amd64"
 			osArch == "x86" || osArch == "i386" -> "386"
 			osArch == "aarch32" || osArch.startsWith("arm") -> "arm"
-			osArch.contains("arm64") -> "arm64"
+			osArch == "aarch64" || osArch.contains("arm64") -> "arm64"
 			osArch.contains("ppc64le") ||
 					(osArch.contains("ppc64") && System.getProperty("sun.cpu.endian") == "little") -> "ppc64le"
 			else -> throw IllegalStateException("Unsupported platform architecture '${System.getProperty("os.arch")}'")
