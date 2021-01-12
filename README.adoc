@@ -23,7 +23,7 @@ Add the following to your `pom.xml`
       <version>2.8.1</version>
       <configuration>
         <chartName>my-chart</chartName>
-        <chartRepoUrl>https://kubernetes-charts.storage.googleapis.com/</chartRepoUrl>
+        <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
         <helmVersion>3.4.2</helmVersion>
         <strictLint>true</strictLint>
         <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
@@ -91,7 +91,7 @@ that the correct docker image is used. An example snippet:
 |skipSnapshots |`true` |If true, SNAPSHOT versions will be built, but not deployed.
 |helmGroupId |`"com.deviceinsight.helm"` |The helm binary `groupId`
 |helmArtifactId |`"helm"` |The helm binary `artifactId`
-|helmVersion |None |The helm binary `version`
+|helmVersion |None |The helm binary `version`. (Make sure to use a recent helm binary version that doesn't use the old Helm Chart repositories from `+https://kubernetes-charts.storage.googleapis.com+`, >= 3.4.0 _or_ >= 2.17.0 if you are still using Helm 2)
 |helmDownloadUrl |`"https://get.helm.sh/"` |The URL where the helm binary is downloaded from.
 |helm.skip |`false` |If true, execution will be skipped entirely
 |strictLint |`false` |If true, linting fails on warnings (see: <<goal-lint>>)
@@ -140,31 +140,53 @@ To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plug
   <plugins>
     ...
     <plugin>
-	  <groupId>com.deviceinsight.helm</groupId>
-	  <artifactId>helm-maven-plugin</artifactId>
-	  <version>2.1.0</version>
-	  <configuration>
-		<chartName>my-chart</chartName>
-		<chartRepoUrl>https://kubernetes-charts.storage.googleapis.com/</chartRepoUrl>
-		<helmVersion>2.13.0</helmVersion>
-		<strictLint>true</strictLint>
-		<valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
-		<deployAtEnd>true</deployAtEnd>
-	  </configuration>
-	  <executions>
-		<execution>
-		  <goals>
-			<goal>package</goal>
-			<goal>lint</goal>
-			<goal>template</goal>
-			<goal>deploy</goal>
-		  </goals>
-		</execution>
-	  </executions>
-	</plugin>
+      <groupId>com.deviceinsight.helm</groupId>
+      <artifactId>helm-maven-plugin</artifactId>
+      <version>2.8.1</version>
+      <configuration>
+        <chartName>my-chart</chartName>
+        <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
+        <helmVersion>3.4.2</helmVersion>
+        <strictLint>true</strictLint>
+        <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
+        <deployAtEnd>true</deployAtEnd>
+      </configuration>
+      <executions>
+        <execution>
+          <goals>
+            <goal>package</goal>
+            <goal>lint</goal>
+            <goal>template</goal>
+            <goal>deploy</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
   </plugins>
 </build>
 ....
+
+== Troubleshooting
+
+. {blank}
+Problem:: The following error message is a common source of trouble, lately:
++
+----
+[ERROR] Output: Error: error initializing: Looks like "https://kubernetes-charts.storage.googleapis.com" is not a valid chart repository or cannot be reached: Failed to fetch https://kubernetes-charts.storage.googleapis.com/index.yaml : 403 Forbidden
+
+...
+
+[ERROR] Failed to execute goal com.deviceinsight.helm:helm-maven-plugin:2.8.1:package (default) on project my-project: Error creating helm chart: When executing '/home/user/.m2/repository/com/deviceinsight/helm/helm/2.16.2/helm-2.16.2-linux-amd64.binary init --client-only' got result code '1' -> [Help 1]
+----
+Solution:: This is likely due to an old version of helm itself. Make sure to configure `<helmVersion>` to a version >= 3.4.0 or, if you are still using Helm 2, a version >= 2.17.0 (https://github.com/helm/charts#%EF%B8%8F-deprecation-and-archive-notice[background information]).
+. {blank}
++
+Problem:: The following error message appears if you use an old version of helm-maven-plugin:
++
+----
+[ERROR] Output: Error: error initializing: Looks like "https://kubernetes-charts-incubator.storage.googleapis.com" is not a valid chart repository or cannot be reached: Failed to fetch https://kubernetes-charts-incubator.storage.googleapis.com/index.yaml : 403 Forbidden
+----
+Solution:: This can be solved by upgrading helm-maven-plugin itself to version 2.7.0 or later (https://github.com/deviceinsight/helm-maven-plugin/issues/67[#67]).
 
 == Releasing
 
