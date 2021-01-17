@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
 
 
-@Mojo(name = "lint", defaultPhase = LifecyclePhase.NONE)
+@Mojo(name = "lint", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
 class LintMojo : ResolveHelmMojo() {
 
 	/**
