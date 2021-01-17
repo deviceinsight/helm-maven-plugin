@@ -26,7 +26,7 @@ import java.io.File
  * Packages helm charts
  */
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
-class PackageMojo : AbstractHelmMojo() {
+class PackageMojo : ResolveHelmMojo() {
 
 	companion object {
 		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*?)}""")
@@ -66,7 +66,7 @@ class PackageMojo : AbstractHelmMojo() {
 				return
 			}
 
-			val helm = resolveHelmBinary()
+			super.execute()
 
 			val targetHelmDir = File(target(), chartName())
 
@@ -92,6 +92,7 @@ class PackageMojo : AbstractHelmMojo() {
 					""
 				}
 				executeCmd("$helm repo add chartRepo $chartRepoUrl$authParams")
+			}
 			executeCmd("$helm dependency update", directory = targetHelmDir)
 			executeCmd("$helm package ${chartName()} --version $chartVersion")
 

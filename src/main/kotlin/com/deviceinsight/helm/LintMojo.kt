@@ -23,8 +23,8 @@ import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
 
 
-@Mojo(name = "lint", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-class LintMojo : AbstractHelmMojo() {
+@Mojo(name = "lint", defaultPhase = LifecyclePhase.NONE)
+class LintMojo : ResolveHelmMojo() {
 
 	/**
 	 * An optional values.yaml file that is used to run linting, relative to `${project.basedir}`.
@@ -53,7 +53,7 @@ class LintMojo : AbstractHelmMojo() {
 				return
 			}
 
-			val helm = resolveHelmBinary()
+			super.execute()
 
 			val command = mutableListOf(helm, "lint", chartName())
 
