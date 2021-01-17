@@ -1,6 +1,52 @@
 = Changelog
 
-== Unreleased
+== Version 2.8.1
+
+* Fix detection of aarch64/arm64 architecture
+
+== Version 2.8.0
+
+* Support configuring the URL to the incubator repository via `incubatorRepoUrl` and allow to disable the incubator repository via `addIncubatorRepo`
+
+== Version 2.7.1
+
+* Fix inverted status check which _fails_ for any 2xx HTTP status
+
+== Version 2.7.0
+
+* Accept any 2xx HTTP status code when deploying Helm charts
+* Use new incubator repository hosted at https://charts.helm.sh/incubator
+
+== Version 2.6.0
+
+* If the package can't resolve a property an exception is no longer thrown. This behaviour is now logged with a
+  warning and the packaging mojo continues.
+
+== Version 2.5.1
+
+* Ignore `Set-Cookie` header of responses in the `deploy` goal
+* Update dependency versions
+
+== Version 2.5.0
+
+* Make `chartRepoUrl` optional
+* Add logging for property resolution
+* Limit property substitution in `package` mojo to the file extensions "json", "tpl", "yml" and "yaml"
+* Allow multiple property substitutions on a single line
+
+== Version 2.4.1
+
+* Fix a bug where `chartVersion` always had to be configured explicitly. After this fix, `chartVersion` correctly falls
+  back to `project.model.version` again.
+
+== Version 2.4.0
+
+* Support other chart registries like JFrog Artifactory by introducing new optional configuration parameters:
+** `chartPublishUrl`
+** `chartPublishMethod`
+** `chartDeleteUrl`
+* Support chart registries that need authentication for pulling images.
+* Fix a problem with quoted file path arguments on Linux by only quoting paths that contain a space.
 
 == Version 2.3.0
 

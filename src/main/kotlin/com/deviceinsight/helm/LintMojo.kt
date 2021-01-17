@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
-import java.util.ArrayList
 
 
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
@@ -56,28 +55,26 @@ class LintMojo : AbstractHelmMojo() {
 
 			val helm = resolveHelmBinary()
 
-			val params = ArrayList<String>()
+			val command = mutableListOf(helm, "lint", chartName())
 
 			if (strictLint) {
-				params.add("--strict")
+				command.add("--strict")
 			}
 
 			if (valuesFile != null) {
-				params.add("--values \"${project.basedir.resolve(valuesFile!!).absolutePath}\"")
+				command.add("--values")
+				command.add(quoteFilePath(project.basedir.resolve(valuesFile!!).absolutePath))
 			}
 
-			val allParams = params.joinToString(" ")
-			val command = "$helm lint ${chartName()} $allParams".trim()
-
-			executeCmd(command)
+			executeCommand(command)
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error rendering helm lint: ${e.message}", e)
 		}
 	}
 
-	private fun executeCmd(cmd: String, directory: File = target()) {
-		val proc = ProcessBuilder(cmd.split(" "))
+	private fun executeCommand(command: List<String>, directory: File = target()) {
+		val proc = ProcessBuilder(command)
 			.directory(directory)
 			.redirectOutput(ProcessBuilder.Redirect.PIPE)
 			.redirectErrorStream(true)
@@ -85,13 +82,15 @@ class LintMojo : AbstractHelmMojo() {
 
 		proc.waitFor()
 
-		log.debug("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
+		log.debug("When executing '${command.joinToString(" ")}' in '${directory.absolutePath}', " +
+			"result was ${proc.exitValue()}")
 		proc.inputStream.bufferedReader().lines().forEach {
 			log.info("Output: $it")
 		}
 
 		if (proc.exitValue() != 0) {
-			throw RuntimeException("When executing '$cmd' got result code '${proc.exitValue()}'")
+			throw RuntimeException(
+				"When executing '${command.joinToString(" ")}' got result code '${proc.exitValue()}'")
 		}
 	}
 }

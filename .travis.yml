@@ -2,9 +2,7 @@ language: java
 
 jdk:
   - openjdk8
-  - oraclejdk8
-  - oraclejdk9
-  - oraclejdk11
+  - openjdk11
 
 cache:
   directories:
@@ -12,6 +10,6 @@ cache:
 
 install: /bin/true
 
-script: ./mvnw verify -B
+script: mvn verify -B
 
-dist: trusty
+dist: bionic

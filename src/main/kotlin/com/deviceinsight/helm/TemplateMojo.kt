@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ class TemplateMojo : AbstractHelmMojo() {
 
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				"$helm template --values \"$valuesFilePath\" ${chartName()}"
+				"$helm template --values ${quoteFilePath(valuesFilePath)} ${chartName()}"
 			} else {
 				"$helm template ${chartName()}"
 			}
@@ -75,7 +75,7 @@ class TemplateMojo : AbstractHelmMojo() {
 
 			executeCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
 
-			log.info("Rendered helm template to ${file.absolutePath}")
+			log.info("Rendered helm template to '${file.absolutePath}'")
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error rendering helm templates: ${e.message}", e)

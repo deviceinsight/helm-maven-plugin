@@ -1,0 +1,8 @@
+# Documentation: https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "maven" # See documentation for possible values
+    directory: "/"
+    schedule:
+      interval: "weekly"
