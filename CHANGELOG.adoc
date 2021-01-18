@@ -1,5 +1,11 @@
 = Changelog
 
+== Unreleased
+
+== Version 2.9.0
+
+* Support configuring the default URL of the helm repository for helm 2.x via `stableRepoUrl`
+
 == Version 2.8.1
 
 * Fix detection of aarch64/arm64 architecture
@@ -20,7 +26,7 @@
 == Version 2.6.0
 
 * If the package can't resolve a property an exception is no longer thrown. This behaviour is now logged with a
-  warning and the packaging mojo continues.
+  warning, and the packaging mojo continues.
 
 == Version 2.5.1
 
