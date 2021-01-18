@@ -94,6 +94,7 @@ that the correct docker image is used. An example snippet:
 |helmVersion |None |The helm binary `version`. (Make sure to use a recent helm binary version that doesn't use the old Helm Chart repositories from `+https://kubernetes-charts.storage.googleapis.com+`, >= 3.4.0 _or_ >= 2.17.0 if you are still using Helm 2)
 |helmDownloadUrl |`"https://get.helm.sh/"` |The URL where the helm binary is downloaded from.
 |helm.skip |`false` |If true, execution will be skipped entirely
+|stableRepoUrl | `"https://charts.helm.sh/stable"` | For helm 2.x: Can be used to overwrite the default URL for stable repository during `helm init`
 |strictLint |`false` |If true, linting fails on warnings (see: <<goal-lint>>)
 |valuesFile | None | values file that should be used for goals <<goal-lint>>, <<goal-template>>
 |outputFile | target/test-classes/helm.yaml | output file for <<goal-template,template goal>>
