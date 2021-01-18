@@ -48,6 +48,9 @@ class PackageMojo : AbstractHelmMojo() {
 	@Parameter(property = "incubatorRepoUrl", defaultValue = "https://charts.helm.sh/incubator")
 	private var incubatorRepoUrl: String = "https://charts.helm.sh/incubator"
 
+	@Parameter(property = "stableRepoUrl", defaultValue = "https://charts.helm.sh/stable")
+	private var stableRepoUrl: String = "https://charts.helm.sh/stable"
+
 	@Parameter(property = "addIncubatorRepo", defaultValue = "true")
 	private var addIncubatorRepo: Boolean = true
 
@@ -80,7 +83,7 @@ class PackageMojo : AbstractHelmMojo() {
 			processHelmConfigFiles(targetHelmDir)
 
 			if (majorHelmVersion() < 3) {
-				executeCmd("$helm init --client-only")
+				executeCmd("$helm init --client-only --stable-repo-url $stableRepoUrl")
 			}
 
 			if (addIncubatorRepo) {

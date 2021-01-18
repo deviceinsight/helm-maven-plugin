@@ -1,5 +1,9 @@
 = Changelog
 
+== Unreleased
+* Support configuring the default URL of the helm repository for helm 2.x via `stableRepoUrl`
+
+
 == Version 2.8.1
 
 * Fix detection of aarch64/arm64 architecture
