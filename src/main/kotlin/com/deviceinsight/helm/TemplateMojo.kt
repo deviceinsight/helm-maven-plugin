@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
 
 @Mojo(name = "template", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-class TemplateMojo : AbstractHelmMojo() {
+class TemplateMojo : ResolveHelmMojo() {
 
 	/**
 	 * An optional values.yaml file that is used to render the template, relative to `${project.basedir}`.
@@ -55,7 +55,7 @@ class TemplateMojo : AbstractHelmMojo() {
 				return
 			}
 
-			val helm = resolveHelmBinary()
+			super.execute()
 
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
