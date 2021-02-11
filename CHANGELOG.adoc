@@ -2,6 +2,12 @@
 
 == Unreleased
 
+== Version 2.10.0
+
+* Add a new goal, `resolve`, for downloading the helm binary as a separate step. This will still be done automatically
+  by the other goals, but it can be used when running maven builds in parallel, so the helm binary doesn't need to be
+  downloaded twice and to prevent concurrency issues.
+
 == Version 2.9.0
 
 * Support configuring the default URL of the helm repository for helm 2.x via `stableRepoUrl`
