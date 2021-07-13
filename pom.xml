@@ -195,6 +195,38 @@
 					<useSnapshotInHotfix>true</useSnapshotInHotfix>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.jetbrains.dokka</groupId>
+				<artifactId>dokka-maven-plugin</artifactId>
+				<version>${dokka-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>dokka</goal>
+							<goal>javadocJar</goal>
+						</goals>
+						<configuration>
+							<sourceDirectories>
+								<dir>${project.build.sourceDirectory}</dir>
+							</sourceDirectories>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -257,45 +289,6 @@
 			<id>release</id>
 			<build>
 				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>${maven-source-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>jar-no-fork</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.jetbrains.dokka</groupId>
-						<artifactId>dokka-maven-plugin</artifactId>
-						<version>${dokka-maven-plugin.version}</version>
-						<executions>
-							<execution>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>dokka</goal>
-									<goal>javadocJar</goal>
-								</goals>
-								<configuration>
-									<sourceDirectories>
-										<dir>${project.build.sourceDirectory}</dir>
-									</sourceDirectories>
-									<perPackageOptions>
-										<packageOptions>
-											<prefix>com.deviceinsight.helm</prefix>
-											<reportUndocumented>false</reportUndocumented>
-										</packageOptions>
-									</perPackageOptions>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
 					<plugin>
 						<groupId>org.sonatype.plugins</groupId>
 						<artifactId>nexus-staging-maven-plugin</artifactId>
