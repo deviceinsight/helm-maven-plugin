@@ -288,7 +288,7 @@
 									</sourceDirectories>
 									<perPackageOptions>
 										<packageOptions>
-											<prefix>com.deviceinsight.helm</prefix>
+											<matchingRegex>com\.deviceinsight\.helm\..*</matchingRegex>
 											<reportUndocumented>false</reportUndocumented>
 										</packageOptions>
 									</perPackageOptions>
