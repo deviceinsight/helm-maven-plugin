@@ -87,6 +87,7 @@ that the correct docker image is used. An example snippet:
 |chartDeleteUrl |`${chartRepoUrl}/api/charts/${chartName}/${chartVersion}` |The URL that will be used for deleting a previous version of the chart. This is used for updating SNAPSHOT versions. The default value will work if `chartRepoUrl` refers to a ChartMuseum.
 |chartRepoUsername |None |The username for basic authentication against the chart repo
 |chartRepoPassword |None |The password for basic authentication against the chart repo
+|chartRepoServerId |None |The ID of the server definition from the settings.xml server list to obtain the chart repo username/password from. If both chartRepoUsername/chartRepoPassword and chartRepoServerId are specified then the values specified in chartRepoUsername/chartRepoPassword take precedence.
 |chartFolder |`"src/main/helm/<chartName>"` |The location of the chart files (e.g. Chart.yaml).
 |skipSnapshots |`true` |If true, SNAPSHOT versions will be built, but not deployed.
 |helmGroupId |`"com.deviceinsight.helm"` |The helm binary `groupId`

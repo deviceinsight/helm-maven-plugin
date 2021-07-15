@@ -16,22 +16,29 @@
 
 package com.deviceinsight.helm
 
+import com.deviceinsight.helm.util.ServerAuthentication
 import org.apache.maven.plugin.MojoExecutionException
+import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
+import org.apache.maven.settings.Settings
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher
 import java.io.File
 
 /**
  * Packages helm charts
  */
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
-class PackageMojo : ResolveHelmMojo() {
+class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 
 	companion object {
 		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*?)}""")
 		private val SUBSTITUTED_EXTENSIONS = setOf("json", "tpl", "yml", "yaml")
 	}
+
+	@Component(role = SecDispatcher::class, hint = "default")
+	override lateinit var securityDispatcher: SecDispatcher
 
 	@Parameter(property = "chartRepoUrl", required = false)
 	private var chartRepoUrl: String? = null
@@ -45,6 +52,9 @@ class PackageMojo : ResolveHelmMojo() {
 	@Parameter(property = "chartRepoPassword", required = false)
 	private var chartRepoPassword: String? = null
 
+	@Parameter(property = "chartRepoServerId", required = false)
+	private var chartRepoServerId: String? = null
+
 	@Parameter(property = "incubatorRepoUrl", defaultValue = "https://charts.helm.sh/incubator")
 	private var incubatorRepoUrl: String = "https://charts.helm.sh/incubator"
 
@@ -53,6 +63,9 @@ class PackageMojo : ResolveHelmMojo() {
 
 	@Parameter(property = "addIncubatorRepo", defaultValue = "true")
 	private var addIncubatorRepo: Boolean = true
+
+	@Parameter(defaultValue = "\${settings}", readonly = true)
+	override lateinit var settings: Settings
 
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
@@ -89,6 +102,11 @@ class PackageMojo : ResolveHelmMojo() {
 				executeCmd("$helm repo add incubator $incubatorRepoUrl")
 			}
 			if (chartRepoUrl != null) {
+				val server by lazy { getServer(chartRepoServerId) }
+
+				val chartRepoUsername = chartRepoUsername ?: server?.username
+				val chartRepoPassword = chartRepoPassword ?: decryptPassword(server?.password)
+
 				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
 					" --username $chartRepoUsername --password $chartRepoPassword"
 				} else {
