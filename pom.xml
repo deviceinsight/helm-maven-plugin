@@ -18,7 +18,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<maven.version>3.6.1</maven.version>
+		<maven.version>3.6.2</maven.version>
 		<maven-project.version>2.2.1</maven-project.version>
 		<maven-artifact-transfer.version>0.13.1</maven-artifact-transfer.version>
 
