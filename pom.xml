@@ -28,7 +28,7 @@
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
 		<assertj-core.version>3.21.0</assertj-core.version>
 
-		<dokka-maven-plugin.version>1.5.31</dokka-maven-plugin.version>
+		<dokka-maven-plugin.version>1.6.0</dokka-maven-plugin.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<gitflow-maven-plugin.version>1.16.0</gitflow-maven-plugin.version>
