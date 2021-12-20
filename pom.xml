@@ -22,7 +22,7 @@
 		<maven-project.version>2.2.1</maven-project.version>
 		<maven-artifact-transfer.version>0.13.1</maven-artifact-transfer.version>
 
-		<jackson.version>2.13.0</jackson.version>
+		<jackson.version>2.13.1</jackson.version>
 		<httpclient.version>4.5.13</httpclient.version>
 
 		<junit.jupiter.version>5.8.2</junit.jupiter.version>
