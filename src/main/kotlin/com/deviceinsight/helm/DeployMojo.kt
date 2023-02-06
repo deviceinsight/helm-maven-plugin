@@ -16,6 +16,7 @@
 
 package com.deviceinsight.helm
 
+import com.deviceinsight.helm.util.ServerAuthentication
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpDelete
@@ -26,10 +27,13 @@ import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
+import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
+import org.apache.maven.settings.Settings
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher
 import java.io.File
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
@@ -38,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * Publishes helm charts
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
-class DeployMojo : AbstractMojo() {
+class DeployMojo : AbstractMojo(), ServerAuthentication {
 
 	companion object {
 		private val deployAtEndDeploymentRequests: MutableList<ChartDeploymentRequest> =
@@ -46,6 +50,9 @@ class DeployMojo : AbstractMojo() {
 
 		private val readyProjectsCounter: AtomicInteger = AtomicInteger()
 	}
+
+	@Component(role = SecDispatcher::class, hint = "default")
+	override lateinit var securityDispatcher: SecDispatcher
 
 	/**
 	 * Name of the chart
@@ -73,6 +80,10 @@ class DeployMojo : AbstractMojo() {
 
 	@Parameter(property = "chartRepoPassword", required = false)
 	private var chartRepoPassword: String? = null
+
+	@Parameter(property = "chartRepoServerId", required = false)
+	private var chartRepoServerId: String? = null
+
 	@Parameter(property = "skipSnapshots", required = false, defaultValue = "true")
 	private var skipSnapshots: Boolean = true
 
@@ -81,6 +92,9 @@ class DeployMojo : AbstractMojo() {
 
 	@Parameter(defaultValue = "\${reactorProjects}", required = true, readonly = true)
 	private lateinit var reactorProjects: List<MavenProject>
+
+	@Parameter(defaultValue = "\${settings}", readonly = true)
+	override lateinit var settings: Settings
 
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
@@ -97,6 +111,10 @@ class DeployMojo : AbstractMojo() {
 		}
 
 		try {
+			val server by lazy { getServer(chartRepoServerId) }
+
+			val chartRepoUsername = chartRepoUsername ?: server?.username
+			val chartRepoPassword = chartRepoPassword ?: decryptPassword(server?.password)
 
 			val chartDeploymentRequest =
 				ChartDeploymentRequest(chartName, chartVersion, chartPublishMethod, chartRepoUrl, chartPublishUrl,

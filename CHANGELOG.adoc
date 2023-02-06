@@ -2,6 +2,8 @@
 
 == Unreleased
 
+* Support authentication to the helm repository using credentials from server definitions in maven `settings.xml` via `chartRepoServerId`.
+
 == Version 2.10.0
 
 * Add a new goal, `resolve`, for downloading the helm binary as a separate step. This will still be done automatically
