@@ -85,6 +85,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 			super.execute()
 
 			val targetHelmDir = File(target(), chartName())
+			val isHelm2 = majorHelmVersion() < 3
 
 			log.info("Clear target directory to ensure clean target package")
 			if (targetHelmDir.exists()) {
@@ -95,11 +96,13 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 
 			processHelmConfigFiles(targetHelmDir)
 
-			if (majorHelmVersion() < 3) {
-				executeCmd("$helm init --client-only --stable-repo-url $stableRepoUrl")
+			val helmAddFlags = if (isHelm2) emptyArray() else arrayOf("--force-update")
+
+			if (isHelm2) {
+				executeCmd(helm, "init", "--client-only", "--stable-repo-url", stableRepoUrl)
 			}
 			if (addIncubatorRepo) {
-				executeCmd("$helm repo add incubator $incubatorRepoUrl")
+				executeCmd("helm", "repo", "add", "incubator", incubatorRepoUrl, *helmAddFlags)
 			}
 			if (chartRepoUrl != null) {
 				val server by lazy { getServer(chartRepoServerId) }
@@ -108,14 +111,14 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				val chartRepoPassword = chartRepoPassword ?: decryptPassword(server?.password)
 
 				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
-					" --username $chartRepoUsername --password $chartRepoPassword"
+					arrayOf("--username", chartRepoUsername, "--password", chartRepoPassword)
 				} else {
-					""
+					emptyArray()
 				}
-				executeCmd("$helm repo add chartRepo $chartRepoUrl$authParams")
+				executeCmd(helm, "repo", "add", "chartRepo", chartRepoUrl!!, *authParams, *helmAddFlags)
 			}
-			executeCmd("$helm dependency update", directory = targetHelmDir)
-			executeCmd("$helm package ${chartName()} --version $chartVersion")
+			executeCmd(helm, "dependency", "update", directory = targetHelmDir)
+			executeCmd(helm, "package", chartName(), "--version", chartVersion)
 
 			ensureChartFileExists()
 
@@ -129,8 +132,9 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 		val chartTarGzFile = chartTarGzFile()
 
 		if (!chartTarGzFile.exists()) {
-			throw RuntimeException("File ${chartTarGzFile.absolutePath} not found. " +
-				"Chart must be created in package phase first.")
+			throw RuntimeException(
+				"File ${chartTarGzFile.absolutePath} not found. Chart must be created in package phase first."
+			)
 		} else {
 			log.info("Successfully packaged chart and saved it to: $chartTarGzFile")
 		}

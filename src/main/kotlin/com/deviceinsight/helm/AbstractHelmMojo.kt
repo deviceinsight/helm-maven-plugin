@@ -38,9 +38,12 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	@Parameter(property = "chartName", required = false)
 	private var chartName: String? = null
 
-	protected fun executeCmd(cmd: String, directory: File = target(),
-							 redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE) {
-		val proc = ProcessBuilder(cmd.split(" "))
+	protected fun executeCmd(
+		vararg cmd: String,
+		directory: File = target(),
+		redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE
+	) {
+		val proc = ProcessBuilder(cmd.toList())
 			.directory(directory)
 			.redirectOutput(redirectOutput)
 			.redirectError(ProcessBuilder.Redirect.PIPE)
@@ -48,7 +51,7 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 
 		proc.waitFor()
 
-		log.debug("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
+		log.debug("When executing '${cmd.toList()}' in '${directory.absolutePath}', result was ${proc.exitValue()}")
 		proc.inputStream.bufferedReader().lines().forEach { log.debug("Output: $it") }
 		proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
 

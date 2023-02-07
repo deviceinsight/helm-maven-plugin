@@ -3,6 +3,7 @@
 == Unreleased
 
 * Support authentication to the helm repository using credentials from server definitions in maven `settings.xml` via `chartRepoServerId`.
+* Always pass `--force-update` when adding helm repositories managed by this plugin.
 
 == Version 2.10.0
 

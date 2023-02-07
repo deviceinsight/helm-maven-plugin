@@ -59,9 +59,9 @@ class TemplateMojo : ResolveHelmMojo() {
 
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				"$helm template --values ${quoteFilePath(valuesFilePath)} ${chartName()}"
+				arrayOf(helm, "template", "--values", valuesFilePath, chartName())
 			} else {
-				"$helm template ${chartName()}"
+				arrayOf(helm, "template", chartName())
 			}
 
 			var file = File(outputFile)
@@ -73,7 +73,7 @@ class TemplateMojo : ResolveHelmMojo() {
 				file.parentFile.mkdirs()
 			}
 
-			executeCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
+			executeCmd(*command, redirectOutput = ProcessBuilder.Redirect.to(file))
 
 			log.info("Rendered helm template to '${file.absolutePath}'")
 
