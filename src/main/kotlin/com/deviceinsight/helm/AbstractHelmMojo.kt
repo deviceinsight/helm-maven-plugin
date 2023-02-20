@@ -20,6 +20,7 @@ import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import java.io.File
+import kotlin.concurrent.thread
 
 abstract class AbstractHelmMojo : AbstractMojo() {
 
@@ -39,24 +40,32 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	private var chartName: String? = null
 
 	protected fun executeCmd(
-		vararg cmd: String,
+		cmd: List<String>,
 		directory: File = target(),
 		redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE
 	) {
-		val proc = ProcessBuilder(cmd.toList())
+		val proc = ProcessBuilder(cmd)
 			.directory(directory)
 			.redirectOutput(redirectOutput)
 			.redirectError(ProcessBuilder.Redirect.PIPE)
 			.start()
 
-		proc.waitFor()
+		val stdoutPrinter = thread(name = "Stdout printer") {
+			proc.inputStream.bufferedReader().lines().forEach { log.debug("Output: $it") }
+		}
 
-		log.debug("When executing '${cmd.toList()}' in '${directory.absolutePath}', result was ${proc.exitValue()}")
-		proc.inputStream.bufferedReader().lines().forEach { log.debug("Output: $it") }
-		proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
+		val stderrPrinter = thread(name = "Stderr printer") {
+			proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
+		}
+
+		proc.waitFor()
+		stdoutPrinter.join()
+		stderrPrinter.join()
+
+		log.debug("When executing '${cmd.joinToString(" ")}' in '${directory.absolutePath}', result was ${proc.exitValue()}")
 
 		if (proc.exitValue() != 0) {
-			throw RuntimeException("When executing '$cmd' got result code '${proc.exitValue()}'")
+			throw RuntimeException("When executing '${cmd.joinToString(" ")}' got result code '${proc.exitValue()}'")
 		}
 	}
 

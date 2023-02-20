@@ -64,6 +64,9 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 	@Parameter(property = "addIncubatorRepo", defaultValue = "true")
 	private var addIncubatorRepo: Boolean = true
 
+	@Parameter(property = "forceAddRepos", defaultValue = "false")
+	private var forceAddRepos: Boolean = false
+
 	@Parameter(defaultValue = "\${settings}", readonly = true)
 	override lateinit var settings: Settings
 
@@ -96,13 +99,13 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 
 			processHelmConfigFiles(targetHelmDir)
 
-			val helmAddFlags = if (isHelm2) emptyArray() else arrayOf("--force-update")
+			val helmAddFlags = if (isHelm2 || !forceAddRepos) emptyList() else listOf("--force-update")
 
 			if (isHelm2) {
-				executeCmd(helm, "init", "--client-only", "--stable-repo-url", stableRepoUrl)
+				executeCmd(listOf(helm, "init", "--client-only", "--stable-repo-url", stableRepoUrl))
 			}
 			if (addIncubatorRepo) {
-				executeCmd("helm", "repo", "add", "incubator", incubatorRepoUrl, *helmAddFlags)
+				executeCmd(listOf("helm", "repo", "add", "incubator", incubatorRepoUrl) + helmAddFlags)
 			}
 			if (chartRepoUrl != null) {
 				val server by lazy { getServer(chartRepoServerId) }
@@ -111,14 +114,14 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				val chartRepoPassword = chartRepoPassword ?: decryptPassword(server?.password)
 
 				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
-					arrayOf("--username", chartRepoUsername, "--password", chartRepoPassword)
+					listOf("--username", chartRepoUsername, "--password", chartRepoPassword)
 				} else {
-					emptyArray()
+					emptyList()
 				}
-				executeCmd(helm, "repo", "add", "chartRepo", chartRepoUrl!!, *authParams, *helmAddFlags)
+				executeCmd(listOf(helm, "repo", "add", "chartRepo", chartRepoUrl!!) + authParams + helmAddFlags)
 			}
-			executeCmd(helm, "dependency", "update", directory = targetHelmDir)
-			executeCmd(helm, "package", chartName(), "--version", chartVersion)
+			executeCmd(listOf(helm, "dependency", "update"), directory = targetHelmDir)
+			executeCmd(listOf(helm, "package", chartName(), "--version", chartVersion))
 
 			ensureChartFileExists()
 
