@@ -42,6 +42,7 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	protected fun executeCmd(
 		cmd: List<String>,
 		directory: File = target(),
+		logStdoutToInfo: Boolean = false,
 		redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE
 	) {
 		val proc = ProcessBuilder(cmd)
@@ -51,7 +52,8 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 			.start()
 
 		val stdoutPrinter = thread(name = "Stdout printer") {
-			proc.inputStream.bufferedReader().lines().forEach { log.debug("Output: $it") }
+			val logFunction: (String) -> Unit = if (logStdoutToInfo) log::info else log::debug
+			proc.inputStream.bufferedReader().lines().forEach { logFunction("Output: $it") }
 		}
 
 		val stderrPrinter = thread(name = "Stderr printer") {

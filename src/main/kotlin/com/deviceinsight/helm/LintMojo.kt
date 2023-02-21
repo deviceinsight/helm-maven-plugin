@@ -65,7 +65,7 @@ class LintMojo : ResolveHelmMojo() {
 				command.add(quoteFilePath(project.basedir.resolve(valuesFile!!).absolutePath))
 			}
 
-			executeCmd(command)
+			executeCmd(command, logStdoutToInfo = true)
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error rendering helm lint: ${e.message}", e)
