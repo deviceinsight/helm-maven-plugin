@@ -59,9 +59,9 @@ class TemplateMojo : ResolveHelmMojo() {
 
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				"$helm template --values ${quoteFilePath(valuesFilePath)} ${chartName()}"
+				listOf(helm, "template", "--values", valuesFilePath, chartName())
 			} else {
-				"$helm template ${chartName()}"
+				listOf(helm, "template", chartName())
 			}
 
 			var file = File(outputFile)

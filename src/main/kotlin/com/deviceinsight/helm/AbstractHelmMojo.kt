@@ -20,6 +20,7 @@ import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import java.io.File
+import kotlin.concurrent.thread
 
 abstract class AbstractHelmMojo : AbstractMojo() {
 
@@ -38,22 +39,35 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	@Parameter(property = "chartName", required = false)
 	private var chartName: String? = null
 
-	protected fun executeCmd(cmd: String, directory: File = target(),
-							 redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE) {
-		val proc = ProcessBuilder(cmd.split(" "))
+	protected fun executeCmd(
+		cmd: List<String>,
+		directory: File = target(),
+		logStdoutToInfo: Boolean = false,
+		redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE
+	) {
+		val proc = ProcessBuilder(cmd)
 			.directory(directory)
 			.redirectOutput(redirectOutput)
 			.redirectError(ProcessBuilder.Redirect.PIPE)
 			.start()
 
-		proc.waitFor()
+		val stdoutPrinter = thread(name = "Stdout printer") {
+			val logFunction: (String) -> Unit = if (logStdoutToInfo) log::info else log::debug
+			proc.inputStream.bufferedReader().lines().forEach { logFunction("Output: $it") }
+		}
 
-		log.debug("When executing '$cmd' in '${directory.absolutePath}', result was ${proc.exitValue()}")
-		proc.inputStream.bufferedReader().lines().forEach { log.debug("Output: $it") }
-		proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
+		val stderrPrinter = thread(name = "Stderr printer") {
+			proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
+		}
+
+		proc.waitFor()
+		stdoutPrinter.join()
+		stderrPrinter.join()
+
+		log.debug("When executing '${cmd.joinToString(" ")}' in '${directory.absolutePath}', result was ${proc.exitValue()}")
 
 		if (proc.exitValue() != 0) {
-			throw RuntimeException("When executing '$cmd' got result code '${proc.exitValue()}'")
+			throw RuntimeException("When executing '${cmd.joinToString(" ")}' got result code '${proc.exitValue()}'")
 		}
 	}
 

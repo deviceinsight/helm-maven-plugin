@@ -82,6 +82,7 @@ that the correct docker image is used. An example snippet:
 |chartRepoUrl |`null` |The URL of the Chart repository where dependencies are required from and where charts should be published to
 |incubatorRepoUrl |`https://charts.helm.sh/incubator` |The URL to the incubator Chart repository
 |addIncubatorRepo |`true` |Whether the repository defined in `incubatorRepoUrl` should be added when running the package goal
+|forceAddRepos |`false` |Whether to overwrite the repository configuration when adding a new repository with the same name. This flag is only relevant when using Helm 3 and emulates Helm 2 behavior
 |chartPublishUrl |`${chartRepoUrl}/api/charts` |The URL that will be used for publishing the chart. The default value will work if `chartRepoUrl` refers to a ChartMuseum.
 |chartPublishMethod |"POST" |The HTTP method that will be used for publishing requests
 |chartDeleteUrl |`${chartRepoUrl}/api/charts/${chartName}/${chartVersion}` |The URL that will be used for deleting a previous version of the chart. This is used for updating SNAPSHOT versions. The default value will work if `chartRepoUrl` refers to a ChartMuseum.
