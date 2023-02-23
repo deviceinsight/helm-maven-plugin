@@ -20,7 +20,6 @@ import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
-import java.io.File
 
 
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
@@ -66,31 +65,10 @@ class LintMojo : ResolveHelmMojo() {
 				command.add(quoteFilePath(project.basedir.resolve(valuesFile!!).absolutePath))
 			}
 
-			executeCommand(command)
+			executeCmd(command, logStdoutToInfo = true)
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error rendering helm lint: ${e.message}", e)
-		}
-	}
-
-	private fun executeCommand(command: List<String>, directory: File = target()) {
-		val proc = ProcessBuilder(command)
-			.directory(directory)
-			.redirectOutput(ProcessBuilder.Redirect.PIPE)
-			.redirectErrorStream(true)
-			.start()
-
-		proc.waitFor()
-
-		log.debug("When executing '${command.joinToString(" ")}' in '${directory.absolutePath}', " +
-			"result was ${proc.exitValue()}")
-		proc.inputStream.bufferedReader().lines().forEach {
-			log.info("Output: $it")
-		}
-
-		if (proc.exitValue() != 0) {
-			throw RuntimeException(
-				"When executing '${command.joinToString(" ")}' got result code '${proc.exitValue()}'")
 		}
 	}
 }

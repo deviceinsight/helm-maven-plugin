@@ -52,7 +52,7 @@ object PlatformDetector {
 	}
 
 	private fun normalizeIdentifier(identifier: String): String {
-		return identifier.toLowerCase(Locale.US).replace(IGNORED_CHARACTERS, "")
+		return identifier.lowercase(Locale.US).replace(IGNORED_CHARACTERS, "")
 	}
 
 }

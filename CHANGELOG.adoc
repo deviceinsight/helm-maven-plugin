@@ -1,6 +1,10 @@
 = Changelog
 
-== Unreleased
+== Version 2.11.0
+
+* Support authentication to the helm repository using credentials from server definitions in maven `settings.xml` via `chartRepoServerId`.
+* Add an option to pass `--force-update` when adding helm repositories managed by this plugin.
+* Cleanup dependencies, readme, and deprecated Kotlin functions
 
 == Version 2.10.0
 
