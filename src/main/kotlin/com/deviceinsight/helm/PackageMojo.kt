@@ -154,7 +154,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				parentFile.mkdirs()
 			}
 
-			if (!SUBSTITUTED_EXTENSIONS.contains(file.extension.toLowerCase())) {
+			if (!SUBSTITUTED_EXTENSIONS.contains(file.extension.lowercase())) {
 				file.copyTo(targetFile, true)
 				return@onEach
 			}
@@ -171,7 +171,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 							}
 						}
 					}.forEach {
-						writer.appendln(it)
+						writer.appendLine(it)
 					}
 				}
 			}
