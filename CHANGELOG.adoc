@@ -1,5 +1,9 @@
 = Changelog
 
+== Version 2.11.1
+
+* Fix helm binary path when adding incubator repository
+
 == Version 2.11.0
 
 * Support authentication to the helm repository using credentials from server definitions in maven `settings.xml` via `chartRepoServerId`.
