@@ -16,7 +16,7 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>2.11.0</version>
+      <version>2.11.1</version>
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
@@ -130,7 +130,7 @@ To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plug
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>2.11.0</version>
+      <version>2.11.1</version>
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
@@ -163,7 +163,7 @@ To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plug
    
    ...
    
-   [ERROR] Failed to execute goal com.deviceinsight.helm:helm-maven-plugin:2.11.0:package (default) on project my-project: Error creating helm chart: When executing '/home/user/.m2/repository/com/deviceinsight/helm/helm/2.16.2/helm-2.16.2-linux-amd64.binary init --client-only' got result code '1' -> [Help 1]
+   [ERROR] Failed to execute goal com.deviceinsight.helm:helm-maven-plugin:2.11.1:package (default) on project my-project: Error creating helm chart: When executing '/home/user/.m2/repository/com/deviceinsight/helm/helm/2.16.2/helm-2.16.2-linux-amd64.binary init --client-only' got result code '1' -> [Help 1]
    ```
    _**Solution**_  
    This is likely due to an old version of helm itself. Make sure to configure `<helmVersion>` to a version >= 3.4.0 or, if you are still using Helm 2, a version >= 2.17.0 ([background information](https://github.com/helm/charts#%EF%B8%8F-deprecation-and-archive-notice)).
