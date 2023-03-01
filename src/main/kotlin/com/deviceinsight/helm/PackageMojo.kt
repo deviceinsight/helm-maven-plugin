@@ -105,7 +105,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				executeCmd(listOf(helm, "init", "--client-only", "--stable-repo-url", stableRepoUrl))
 			}
 			if (addIncubatorRepo) {
-				executeCmd(listOf("helm", "repo", "add", "incubator", incubatorRepoUrl) + helmAddFlags)
+				executeCmd(listOf(helm, "repo", "add", "incubator", incubatorRepoUrl) + helmAddFlags)
 			}
 			if (chartRepoUrl != null) {
 				val server by lazy { getServer(chartRepoServerId) }
