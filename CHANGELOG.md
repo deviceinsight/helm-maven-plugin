@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Converted README and CHANGELOG to Markdown
+* Fix helm binary path when adding incubator repository
 
 ## Version 2.11.0
 
