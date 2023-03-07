@@ -17,6 +17,10 @@
 package com.deviceinsight.helm
 
 import com.deviceinsight.helm.util.ServerAuthentication
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
@@ -25,6 +29,8 @@ import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.settings.Settings
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher
 import java.io.File
+import java.io.IOException
+
 
 /**
  * Packages helm charts
@@ -70,6 +76,9 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 	@Parameter(defaultValue = "\${settings}", readonly = true)
 	override lateinit var settings: Settings
 
+	@Parameter(property = "extraValuesFiles")
+	private val extraValuesFiles: List<String> = emptyList()
+
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
 
@@ -98,6 +107,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 			log.info("Created target helm directory")
 
 			processHelmConfigFiles(targetHelmDir)
+			mergeValuesFiles(targetHelmDir, extraValuesFiles)
 
 			val helmAddFlags = if (isHelm2 || !forceAddRepos) emptyList() else listOf("--force-update")
 
@@ -180,6 +190,38 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 
 		if (processedFiles.isEmpty()) {
 			throw IllegalStateException("No helm files found in ${directory.absolutePath}")
+		}
+	}
+
+	private fun mergeValuesFiles(targetHelmDir: File, extraValuesFiles: List<String>) {
+
+		if (extraValuesFiles.isEmpty()) {
+			return
+		}
+
+		val missingFiles = extraValuesFiles.filter { !File(it).exists() }
+		if (missingFiles.isNotEmpty()) {
+			throw IllegalStateException("extraValueFiles not found: $missingFiles")
+		}
+
+		val allValuesFiles = extraValuesFiles.toMutableList()
+		val valuesFile = targetHelmDir.resolve("values.yaml")
+
+		if (valuesFile.exists()) {
+			allValuesFiles.add(0, valuesFile.absolutePath)
+		}
+
+		val yamlMapper = ObjectMapper(YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES))
+		val values: ObjectNode = yamlMapper.createObjectNode()
+		val yamlReader = yamlMapper.setDefaultMergeable(true).readerForUpdating(values)
+
+		try {
+			for (file in allValuesFiles) {
+				yamlReader.readValue(File(file), ObjectNode::class.java)
+			}
+			yamlMapper.writeValue(valuesFile, values)
+		} catch (e: IOException) {
+			throw RuntimeException(e)
 		}
 	}
 

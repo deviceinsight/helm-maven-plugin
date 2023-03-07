@@ -21,6 +21,7 @@
 		<maven.version>3.6.2</maven.version>
 		<maven-project.version>2.2.1</maven-project.version>
 
+		<jackson-bom.version>2.14.2</jackson-bom.version>
 		<httpclient.version>4.5.14</httpclient.version>
 		<plexus-sec-dispatcher.version>1.4</plexus-sec-dispatcher.version>
 
@@ -43,6 +44,13 @@
 				<version>${kotlin.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
+				<version>${jackson-bom.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -93,6 +101,15 @@
 			<groupId>org.sonatype.plexus</groupId>
 			<artifactId>plexus-sec-dispatcher</artifactId>
 			<version>${plexus-sec-dispatcher.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
 		</dependency>
 
 		<dependency>

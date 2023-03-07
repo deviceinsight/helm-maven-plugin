@@ -92,6 +92,7 @@ that the correct docker image is used. An example snippet:
 | stableRepoUrl | `"https://charts.helm.sh/stable"` | For helm 2.x: Can be used to overwrite the default URL for stable repository during `helm init` |
 | strictLint | `false` | If true, linting fails on warnings (see: [Lint](#lint)) |
 | valuesFile | None | values file that should be used for goals [Lint](#lint), [Template](#template) |
+| extraValuesFiles | None | a list of additional values files that can be generated dynamically and will be merged with the values.yaml during [Package](#package). |
 | outputFile | target/test-classes/helm.yaml | output file for [template goal](#template) |
 | deployAtEnd | `false` | If true, the helm chart is deployed at the end of a multi-module Maven build. This option does not make sense for single-module Maven projects. |
 
