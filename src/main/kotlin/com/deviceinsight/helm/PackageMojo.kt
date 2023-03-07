@@ -199,7 +199,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 			return
 		}
 
-		val missingFiles = extraValuesFiles.filter { !File(it).exists() }.toList()
+		val missingFiles = extraValuesFiles.filter { !File(it).exists() }
 		if (missingFiles.isNotEmpty()) {
 			throw IllegalStateException("extraValueFiles not found: $missingFiles")
 		}
