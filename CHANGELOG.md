@@ -1,98 +1,103 @@
-= Changelog
+# Changelog
 
-== Version 2.11.1
+## Unreleased
+
+* Converted README and CHANGELOG to Markdown
+* Add option to provide additional values files
+
+## Version 2.11.1
 
 * Fix helm binary path when adding incubator repository
 
-== Version 2.11.0
+## Version 2.11.0
 
 * Support authentication to the helm repository using credentials from server definitions in maven `settings.xml` via `chartRepoServerId`.
 * Add an option to pass `--force-update` when adding helm repositories managed by this plugin.
 * Cleanup dependencies, readme, and deprecated Kotlin functions
 
-== Version 2.10.0
+## Version 2.10.0
 
 * Add a new goal, `resolve`, for downloading the helm binary as a separate step. This will still be done automatically
   by the other goals, but it can be used when running maven builds in parallel, so the helm binary doesn't need to be
   downloaded twice and to prevent concurrency issues.
 
-== Version 2.9.0
+## Version 2.9.0
 
 * Support configuring the default URL of the helm repository for helm 2.x via `stableRepoUrl`
 
-== Version 2.8.1
+## Version 2.8.1
 
 * Fix detection of aarch64/arm64 architecture
 
-== Version 2.8.0
+## Version 2.8.0
 
 * Support configuring the URL to the incubator repository via `incubatorRepoUrl` and allow to disable the incubator repository via `addIncubatorRepo`
 
-== Version 2.7.1
+## Version 2.7.1
 
 * Fix inverted status check which _fails_ for any 2xx HTTP status
 
-== Version 2.7.0
+## Version 2.7.0
 
 * Accept any 2xx HTTP status code when deploying Helm charts
 * Use new incubator repository hosted at https://charts.helm.sh/incubator
 
-== Version 2.6.0
+## Version 2.6.0
 
 * If the package can't resolve a property an exception is no longer thrown. This behaviour is now logged with a
   warning, and the packaging mojo continues.
 
-== Version 2.5.1
+## Version 2.5.1
 
 * Ignore `Set-Cookie` header of responses in the `deploy` goal
 * Update dependency versions
 
-== Version 2.5.0
+## Version 2.5.0
 
 * Make `chartRepoUrl` optional
 * Add logging for property resolution
 * Limit property substitution in `package` mojo to the file extensions "json", "tpl", "yml" and "yaml"
 * Allow multiple property substitutions on a single line
 
-== Version 2.4.1
+## Version 2.4.1
 
 * Fix a bug where `chartVersion` always had to be configured explicitly. After this fix, `chartVersion` correctly falls
   back to `project.model.version` again.
 
-== Version 2.4.0
+## Version 2.4.0
 
 * Support other chart registries like JFrog Artifactory by introducing new optional configuration parameters:
-** `chartPublishUrl`
-** `chartPublishMethod`
-** `chartDeleteUrl`
+  * `chartPublishUrl`
+  * `chartPublishMethod`
+  * `chartDeleteUrl`
 * Support chart registries that need authentication for pulling images.
 * Fix a problem with quoted file path arguments on Linux by only quoting paths that contain a space.
 
-== Version 2.3.0
+## Version 2.3.0
 
 * Support overriding the chart version using the configuration parameter `chartVersion`. If `chartVersion` is not
   configured, the value for `project.model.version` will be used instead.
 * Add support for Helm 3.
 
-== Version 2.2.0
+## Version 2.2.0
 
 * Update dependency on `jackson-databind` to version 2.9.10 because of
-  https://nvd.nist.gov/vuln/detail/CVE-2019-14540[CVE-2019-14540] and
-  https://nvd.nist.gov/vuln/detail/CVE-2019-16335[CVE-2019-16335].
+  [CVE-2019-14540](https://nvd.nist.gov/vuln/detail/CVE-2019-14540) and
+  [CVE-2019-16335](https://nvd.nist.gov/vuln/detail/CVE-2019-16335).
 * Replace gitflow plugin `jgitflow-maven-plugin` with
-  https://github.com/aleksandr-m/gitflow-maven-plugin[gitflow-maven-plugin].
+  [gitflow-maven-plugin](https://github.com/aleksandr-m/gitflow-maven-plugin).
 
-== Version 2.1.1
+## Version 2.1.1
 
 * Update dependency on `jackson-databind` to version 2.9.9 because of
-  https://nvd.nist.gov/vuln/detail/CVE-2019-12086[CVE-2019-12086].
+  [CVE-2019-12086](https://nvd.nist.gov/vuln/detail/CVE-2019-12086).
 
-== Version 2.1.0
+## Version 2.1.0
 
 * Add new goal lint, which runs linting using helm lint.
 * Make sure `target/test-classes` is created if it's missing.
 
-== Version 2.0.0
+## Version 2.0.0
 
 * Support multiple platforms.
 * Download official helm binary release if release is missing in remote artifact repository.
