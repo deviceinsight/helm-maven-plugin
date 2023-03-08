@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## Version 2.12.0
+
 * Converted README and CHANGELOG to Markdown
 * Add option to provide additional values files
 
