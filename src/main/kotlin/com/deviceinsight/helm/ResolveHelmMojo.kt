@@ -20,13 +20,11 @@ import com.deviceinsight.helm.util.PlatformDetector
 import org.apache.maven.artifact.Artifact
 import org.apache.maven.artifact.repository.ArtifactRepository
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult
 import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.repository.RepositorySystem
-import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
 import java.nio.file.Files
@@ -34,7 +32,6 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import kotlin.system.measureTimeMillis
 
 @Mojo(name = "resolve", defaultPhase = LifecyclePhase.NONE)
 open class ResolveHelmMojo : AbstractHelmMojo() {
@@ -60,85 +57,77 @@ open class ResolveHelmMojo : AbstractHelmMojo() {
 	@Component
 	private lateinit var repositorySystem: RepositorySystem
 
-	protected lateinit var helm : String
+	protected lateinit var helm: String
 
-	protected fun resolveHelmBinary(): String {
+	override fun execute() {
+		checkHelmVersion()
+		helm = resolveHelmBinary()
+	}
 
+	private fun checkHelmVersion() {
+		val (majorVersion, minorVersion) = helmVersion.split('.').map(String::toInt)
+
+		if (majorVersion > 3) {
+			log.warn("This plugin was not tested with versions beyond Helm 3")
+			log.warn("Please check whether an update for this plugin is available")
+		}
+
+		require(majorVersion > 3 || (majorVersion == 3 && minorVersion >= 8)) {
+			"This plugin requires at least Helm 3.8"
+		}
+	}
+
+	private fun resolveHelmBinary(): String {
 		val platformIdentifier = PlatformDetector.detectHelmReleasePlatformIdentifier()
-		val helmArtifact: Artifact =
-			repositorySystem.createArtifactWithClassifier(helmGroupId, helmArtifactId, helmVersion, "binary",
-				platformIdentifier)
+		val helmArtifact = repositorySystem.createArtifactWithClassifier(
+			helmGroupId,
+			helmArtifactId,
+			helmVersion,
+			"binary",
+			platformIdentifier
+		)
+		val request = ArtifactResolutionRequest().apply {
+			artifact = helmArtifact
+			isResolveTransitively = false
+			localRepository = this@ResolveHelmMojo.localRepository
+			remoteRepositories = this@ResolveHelmMojo.remoteRepositories
+		}
 
-		val request = ArtifactResolutionRequest()
-		request.artifact = helmArtifact
-		request.isResolveTransitively = false
-		request.localRepository = localRepository
-		request.remoteRepositories = remoteRepositories
-
-		val resolutionResult: ArtifactResolutionResult = repositorySystem.resolve(request)
-
+		val resolutionResult = repositorySystem.resolve(request)
 		if (!resolutionResult.isSuccess) {
 			log.info("Artifact not found in remote repositories")
 			downloadAndInstallHelm(helmArtifact, platformIdentifier)
 		}
 
-		helmArtifact.file.setExecutable(true)
-
-		return helmArtifact.file.absolutePath
+		return helmArtifact.file.apply { setExecutable(true) }.absolutePath
 	}
 
 	private fun downloadAndInstallHelm(artifact: Artifact, platformIdentifier: String) {
-
 		val fileName = "helm-v$helmVersion-$platformIdentifier"
-
-		val targetFile = artifact.file.toPath()
-		Files.createDirectories(targetFile.parent)
-
 		val url = helmDownloadUrl.resolve("./$fileName.zip").toURL()
+		val targetFile = artifact.file.toPath()
 
+		Files.createDirectories(targetFile.parent)
 		downloadFileAndExtractBinary(url, targetFile)
 	}
 
 	private fun downloadFileAndExtractBinary(url: URL, destination: Path) {
-		val httpConnection = url.openConnection()
-		httpConnection.connect()
-		if (httpConnection !is HttpURLConnection || httpConnection.responseCode != 200) {
-			throw RuntimeException("Could not download file from $url")
-		}
+		log.info("Downloading Helm binary from $url")
 
-		val sizeInMiB: Double = httpConnection.contentLengthLong / 1024.0 / 1024.0
-		log.info("Downloading $url; need to get %.1f MiB...".format(sizeInMiB))
+		ZipInputStream(url.openStream()).use { zipInputStream ->
+			val zipEntries = generateSequence { zipInputStream.nextEntry }
+			val foundHelmBinaries = zipEntries.filter(::isHelmBinary).map {
+				Files.copy(zipInputStream, destination, StandardCopyOption.REPLACE_EXISTING)
+			}.count()
 
-		val downloadTimeMillis = measureTimeMillis {
-			httpConnection.inputStream.use {
-				ZipInputStream(it).use { zip ->
-					var entry: ZipEntry? = zip.nextEntry
-					do {
-						if (entry != null) {
-							if (isHelmBinary(entry)) {
-								Files.copy(zip, destination, StandardCopyOption.REPLACE_EXISTING)
-								zip.closeEntry()
-								break
-							} else {
-								zip.closeEntry()
-								entry = zip.nextEntry
-							}
-						}
-					} while (entry != null)
-				}
+			require(foundHelmBinaries == 1) {
+				"Expected 1 but found $foundHelmBinaries Helm binaries in $url"
 			}
 		}
 
-		log.info("Download took %.1f seconds".format(downloadTimeMillis / 1000.0))
+		log.info("Finished downloading Helm binary")
 	}
-
-	protected fun majorHelmVersion(): Int = helmVersion.splitToSequence('.').first().toInt()
-
 
 	private fun isHelmBinary(entry: ZipEntry): Boolean =
 		!entry.isDirectory && (entry.name.endsWith("helm") || entry.name.endsWith("helm.exe"))
-
-	override fun execute() {
-		helm = resolveHelmBinary()
-	}
 }

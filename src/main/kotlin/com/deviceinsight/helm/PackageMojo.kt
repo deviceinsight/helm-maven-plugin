@@ -64,9 +64,6 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 	@Parameter(property = "incubatorRepoUrl", defaultValue = "https://charts.helm.sh/incubator")
 	private var incubatorRepoUrl: String = "https://charts.helm.sh/incubator"
 
-	@Parameter(property = "stableRepoUrl", defaultValue = "https://charts.helm.sh/stable")
-	private var stableRepoUrl: String = "https://charts.helm.sh/stable"
-
 	@Parameter(property = "addIncubatorRepo", defaultValue = "true")
 	private var addIncubatorRepo: Boolean = true
 
@@ -97,7 +94,6 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 			super.execute()
 
 			val targetHelmDir = File(target(), chartName())
-			val isHelm2 = majorHelmVersion() < 3
 
 			log.info("Clear target directory to ensure clean target package")
 			if (targetHelmDir.exists()) {
@@ -109,11 +105,8 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 			processHelmConfigFiles(targetHelmDir)
 			mergeValuesFiles(targetHelmDir, extraValuesFiles)
 
-			val helmAddFlags = if (isHelm2 || !forceAddRepos) emptyList() else listOf("--force-update")
+			val helmAddFlags = if (forceAddRepos) listOf("--force-update") else emptyList()
 
-			if (isHelm2) {
-				executeCmd(listOf(helm, "init", "--client-only", "--stable-repo-url", stableRepoUrl))
-			}
 			if (addIncubatorRepo) {
 				executeCmd(listOf(helm, "repo", "add", "incubator", incubatorRepoUrl) + helmAddFlags)
 			}
