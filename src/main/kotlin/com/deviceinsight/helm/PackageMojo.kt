@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 			val helmAddFlags = if (forceAddRepos) listOf("--force-update") else emptyList()
 
 			if (addIncubatorRepo) {
-				executeCmd(listOf(helm, "repo", "add", "incubator", incubatorRepoUrl) + helmAddFlags)
+				executeHelmCmd(listOf("repo", "add", "incubator", incubatorRepoUrl) + helmAddFlags)
 			}
 			if (chartRepoUrl != null) {
 				val server by lazy { getServer(chartRepoServerId) }
@@ -121,10 +121,10 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				} else {
 					emptyList()
 				}
-				executeCmd(listOf(helm, "repo", "add", "chartRepo", chartRepoUrl!!) + authParams + helmAddFlags)
+				executeHelmCmd(listOf("repo", "add", "chartRepo", chartRepoUrl!!) + authParams + helmAddFlags)
 			}
-			executeCmd(listOf(helm, "dependency", "update"), directory = targetHelmDir)
-			executeCmd(listOf(helm, "package", chartName(), "--version", chartVersion))
+			executeHelmCmd(listOf("dependency", "update"), directory = targetHelmDir)
+			executeHelmCmd(listOf("package", chartName(), "--version", chartVersion))
 
 			ensureChartFileExists()
 

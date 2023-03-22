@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,9 +59,9 @@ class TemplateMojo : ResolveHelmMojo() {
 
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				listOf(helm, "template", "--values", valuesFilePath, chartName())
+				listOf("template", "--values", valuesFilePath, chartName())
 			} else {
-				listOf(helm, "template", chartName())
+				listOf("template", chartName())
 			}
 
 			var file = File(outputFile)
@@ -73,7 +73,7 @@ class TemplateMojo : ResolveHelmMojo() {
 				file.parentFile.mkdirs()
 			}
 
-			executeCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
+			executeHelmCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
 
 			log.info("Rendered helm template to '${file.absolutePath}'")
 

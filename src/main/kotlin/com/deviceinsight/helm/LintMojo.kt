@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class LintMojo : ResolveHelmMojo() {
 
 			super.execute()
 
-			val command = mutableListOf(helm, "lint", chartName())
+			val command = mutableListOf("lint", chartName())
 
 			if (strictLint) {
 				command.add("--strict")
@@ -62,10 +62,10 @@ class LintMojo : ResolveHelmMojo() {
 
 			if (valuesFile != null) {
 				command.add("--values")
-				command.add(quoteFilePath(project.basedir.resolve(valuesFile!!).absolutePath))
+				command.add(project.basedir.resolve(valuesFile!!).absolutePath)
 			}
 
-			executeCmd(command, logStdoutToInfo = true)
+			executeHelmCmd(command, logStdoutToInfo = true)
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error rendering helm lint: ${e.message}", e)
