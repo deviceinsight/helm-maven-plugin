@@ -12,28 +12,30 @@
 	<url>https://github.com/deviceinsight/helm-maven-plugin</url>
 
 	<properties>
+		<!-- Compiler -->
 		<kotlin.version>1.8.10</kotlin.version>
 		<kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+		<!-- Maven -->
 		<maven.version>3.6.2</maven.version>
-		<maven-project.version>2.2.1</maven-project.version>
+		<maven-plugin-tools.version>3.8.1</maven-plugin-tools.version>
 
+		<!-- Project dependencies -->
 		<jackson-bom.version>2.14.2</jackson-bom.version>
 		<httpclient.version>4.5.14</httpclient.version>
 		<plexus-sec-dispatcher.version>1.4</plexus-sec-dispatcher.version>
 
-		<junit.jupiter.version>5.9.2</junit.jupiter.version>
-		<assertj-core.version>3.24.2</assertj-core.version>
-
-		<dokka-maven-plugin.version>1.7.20</dokka-maven-plugin.version>
+		<!-- Plugins -->
 		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<gitflow-maven-plugin.version>1.19.0</gitflow-maven-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
 		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
+		<maven-invoker-plugin.version>3.3.0</maven-invoker-plugin.version>
+		<maven-invoker-plugin.groovy.version>4.0.6</maven-invoker-plugin.groovy.version>
 	</properties>
 
 	<dependencyManagement>
@@ -68,27 +70,15 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.maven.plugin-tools</groupId>
-			<artifactId>maven-plugin-annotations</artifactId>
-			<version>${maven.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-artifact</artifactId>
-			<version>${maven.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-core</artifactId>
 			<version>${maven.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-project</artifactId>
-			<version>${maven-project.version}</version>
+			<groupId>org.apache.maven.plugin-tools</groupId>
+			<artifactId>maven-plugin-annotations</artifactId>
+			<version>${maven-plugin-tools.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -102,7 +92,6 @@
 			<artifactId>plexus-sec-dispatcher</artifactId>
 			<version>${plexus-sec-dispatcher.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -110,25 +99,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-yaml</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>${junit.jupiter.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<version>${assertj-core.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains.kotlin</groupId>
-			<artifactId>kotlin-test-junit</artifactId>
-			<version>${kotlin.version}</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -161,7 +131,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-plugin-plugin</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-plugin-tools.version}</version>
 				<configuration>
 					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
 					<goalPrefix>helm</goalPrefix>
@@ -220,21 +190,37 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.jetbrains.dokka</groupId>
-				<artifactId>dokka-maven-plugin</artifactId>
-				<version>${dokka-maven-plugin.version}</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-invoker-plugin</artifactId>
+				<version>${maven-invoker-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.groovy</groupId>
+						<artifactId>groovy</artifactId>
+						<version>${maven-invoker-plugin.groovy.version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<projectsDirectory>src/test/it</projectsDirectory>
+					<showErrors>true</showErrors>
+					<cloneProjectsTo>${project.build.directory}/its</cloneProjectsTo>
+					<pomIncludes>
+						<pomInclude>*/pom.xml</pomInclude>
+					</pomIncludes>
+					<settingsFile>src/test/it/settings.xml</settingsFile>
+					<localRepositoryPath>${project.build.directory}/it-repo</localRepositoryPath>
+					<postBuildHookScript>verify.groovy</postBuildHookScript>
+					<goals>
+						<goal>verify</goal>
+					</goals>
+				</configuration>
 				<executions>
 					<execution>
-						<phase>prepare-package</phase>
+						<phase>verify</phase>
 						<goals>
-							<goal>dokka</goal>
-							<goal>javadocJar</goal>
+							<goal>install</goal>
+							<goal>run</goal>
 						</goals>
-						<configuration>
-							<sourceDirectories>
-								<dir>${project.build.sourceDirectory}</dir>
-							</sourceDirectories>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>

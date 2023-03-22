@@ -45,6 +45,16 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 		logStdoutToInfo: Boolean = false,
 		redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE
 	) {
+		check(directory.exists()) {
+			val hint = if (directory == target()) {
+				"Target helm chart dir ($directory) does not exist. Did you run the 'package' goal first?"
+			} else {
+				"Working directory does not exist: $directory"
+			}
+
+			"Unable to execute '${cmd.joinToString(" ")}': $hint"
+		}
+
 		val proc = ProcessBuilder(cmd)
 			.directory(directory)
 			.redirectOutput(redirectOutput)
