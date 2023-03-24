@@ -16,8 +16,6 @@
 
 package com.deviceinsight.helm.util
 
-import java.util.Locale
-
 object PlatformDetector {
 
 	private val IGNORED_CHARACTERS = Regex("[^a-z0-9_]")
@@ -52,7 +50,7 @@ object PlatformDetector {
 	}
 
 	private fun normalizeIdentifier(identifier: String): String {
-		return identifier.lowercase(Locale.US).replace(IGNORED_CHARACTERS, "")
+		return identifier.lowercase().replace(IGNORED_CHARACTERS, "")
 	}
 
 }
