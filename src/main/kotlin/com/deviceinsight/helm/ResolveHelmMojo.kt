@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ open class ResolveHelmMojo : AbstractHelmMojo() {
 	@Parameter(property = "helmArtifactId", defaultValue = "helm")
 	private lateinit var helmArtifactId: String
 
-	@Parameter(property = "helmVersion", required = true)
+	@Parameter(property = "helmVersion", required = true, defaultValue = "3.11.2")
 	private lateinit var helmVersion: String
 
 	@Parameter(property = "helmDownloadUrl", defaultValue = "https://get.helm.sh/")
@@ -65,7 +65,10 @@ open class ResolveHelmMojo : AbstractHelmMojo() {
 	}
 
 	private fun checkHelmVersion() {
-		val (majorVersion, minorVersion) = helmVersion.split('.').map(String::toInt)
+		val versionPattern = """^(\d+)\.(\d+)\..*""".toRegex()
+		val matchResult = versionPattern.matchEntire(helmVersion)
+		requireNotNull(matchResult) { "Expected Helm version '$helmVersion' to match '$versionPattern'" }
+		val (majorVersion, minorVersion) = matchResult.destructured.toList().map(String::toInt)
 
 		if (majorVersion > 3) {
 			log.warn("This plugin was not tested with versions beyond Helm 3")
