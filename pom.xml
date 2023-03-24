@@ -34,8 +34,8 @@
 		<gitflow-maven-plugin.version>1.19.0</gitflow-maven-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
 		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
-		<maven-invoker-plugin.version>3.3.0</maven-invoker-plugin.version>
-		<maven-invoker-plugin.groovy.version>4.0.6</maven-invoker-plugin.groovy.version>
+		<maven-invoker-plugin.version>3.5.0</maven-invoker-plugin.version>
+		<maven-invoker-plugin.groovy.version>4.0.10</maven-invoker-plugin.groovy.version>
 	</properties>
 
 	<dependencyManagement>
