@@ -42,7 +42,7 @@ open class ResolveHelmMojo : AbstractHelmMojo() {
 	@Parameter(property = "helmArtifactId", defaultValue = "helm")
 	private lateinit var helmArtifactId: String
 
-	@Parameter(property = "helmVersion", required = true, defaultValue = "3.11.2")
+	@Parameter(property = "helmVersion", required = true, defaultValue = "3.11.3")
 	private lateinit var helmVersion: String
 
 	@Parameter(property = "helmDownloadUrl", defaultValue = "https://get.helm.sh/")

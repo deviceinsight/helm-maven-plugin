@@ -20,7 +20,7 @@ Add the following to your `pom.xml`
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
-        <helmVersion>3.11.1</helmVersion>
+        <helmVersion>3.11.3</helmVersion>
         <strictLint>true</strictLint>
         <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
       </configuration>
