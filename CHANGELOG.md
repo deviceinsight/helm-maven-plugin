@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Support escaping placeholders with backslash e.g. `\${MY_ENV_VAR}` will no longer be expanded
+
 ## Version 2.12.0
 
 * Converted README and CHANGELOG to Markdown
