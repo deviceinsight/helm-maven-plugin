@@ -39,7 +39,7 @@ import java.io.IOException
 class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 
 	companion object {
-		private val PLACEHOLDER_REGEX = Regex("""\$\{(.*?)}""")
+		private val PLACEHOLDER_REGEX = Regex("""(\\?)\$\{(.*?)}""")
 		private val SUBSTITUTED_EXTENSIONS = setOf("json", "tpl", "yml", "yaml")
 	}
 
@@ -173,11 +173,17 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				file.useLines { lines ->
 					lines.map { line ->
 						PLACEHOLDER_REGEX.replace(line) { matchResult ->
-							val property = matchResult.groupValues[1]
 
-							when (val propertyValue = findPropertyValue(property, targetFile.absolutePath)) {
-								null -> matchResult.groupValues[0]
-								else -> propertyValue
+							val isEscaped = matchResult.groupValues[1] == "\\"
+							val property = matchResult.groupValues[2]
+
+							if (isEscaped) {
+								matchResult.groupValues[0].substring(1)
+							} else {
+								when (val propertyValue = findPropertyValue(property, targetFile.absolutePath)) {
+									null -> matchResult.groupValues[0]
+									else -> propertyValue
+								}
 							}
 						}
 					}.forEach {
