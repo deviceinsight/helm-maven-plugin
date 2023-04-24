@@ -29,7 +29,7 @@
 	<artifactId>test</artifactId>
 
 	<description>
-		Publish and download a chart from ChartMuseum
+		Publish a chart to an OCI compatible registry
 	</description>
 
 	<build>
@@ -40,22 +40,18 @@
 				<configuration>
 					<images>
 						<image>
-							<name>ghcr.io/helm/chartmuseum:v0.14.0</name>
-							<alias>chartmuseum</alias>
+							<name>registry:2.8.1</name>
+							<alias>registry</alias>
 							<run>
 								<ports>
-									<port>chartmuseum.port:8080</port>
+									<port>registry.port:5000</port>
 								</ports>
-								<env>
-									<STORAGE>local</STORAGE>
-									<STORAGE_LOCAL_ROOTDIR>/tmp/charts</STORAGE_LOCAL_ROOTDIR>
-								</env>
 								<wait>
-									<log>Starting ChartMuseum</log>
+									<log>listening on</log>
 									<time>5000</time>
 								</wait>
 								<log>
-									<file>${project.build.directory}/chartmuseum.log</file>
+									<file>${project.build.directory}/registry.log</file>
 								</log>
 							</run>
 						</image>
@@ -84,33 +80,38 @@
 				<artifactId>helm-maven-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>publish-chart</id>
+						<id>publish-chart-autodetected</id>
 						<phase>package</phase>
 						<goals>
 							<goal>package</goal>
 							<goal>deploy</goal>
 						</goals>
 						<configuration>
+							<registries>
+								<registry>
+									<url>oci://localhost:${registry.port}/publish-chart-autodetected/</url>
+									<username>foo</username>
+									<password>bar</password>
+								</registry>
+							</registries>
 							<chartFolder>published-chart</chartFolder>
 							<chartName>published-chart</chartName>
 							<chartVersion>0.1.0</chartVersion>
-							<chartRepoUrl>http://localhost:${chartmuseum.port}/</chartRepoUrl>
-							<skipSnapshots>false</skipSnapshots>
-							<forceAddRepos>true</forceAddRepos>
 						</configuration>
 					</execution>
 					<execution>
-						<id>download-chart</id>
+						<id>publish-chart-without-login</id>
 						<phase>package</phase>
 						<goals>
 							<goal>package</goal>
 							<goal>deploy</goal>
 						</goals>
 						<configuration>
-							<chartFolder>dependent-chart</chartFolder>
-							<chartName>dependent-chart</chartName>
-							<chartRepoUrl>http://localhost:${chartmuseum.port}/</chartRepoUrl>
-							<skipSnapshots>false</skipSnapshots>
+							<chartRegistryUrl>oci://localhost:${registry.port}/publish-chart-without-login/
+							</chartRegistryUrl>
+							<chartFolder>published-chart</chartFolder>
+							<chartName>published-chart</chartName>
+							<chartVersion>0.1.0</chartVersion>
 						</configuration>
 					</execution>
 				</executions>

@@ -22,12 +22,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import org.apache.maven.plugin.MojoExecutionException
-import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
-import org.apache.maven.settings.Settings
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher
 import java.io.File
 import java.io.IOException
 
@@ -43,41 +40,13 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 		private val SUBSTITUTED_EXTENSIONS = setOf("json", "tpl", "yml", "yaml")
 	}
 
-	@Component(role = SecDispatcher::class, hint = "default")
-	override lateinit var securityDispatcher: SecDispatcher
-
-	@Parameter(property = "chartRepoUrl", required = false)
-	private var chartRepoUrl: String? = null
-
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
-
-	@Parameter(property = "chartRepoUsername", required = false)
-	private var chartRepoUsername: String? = null
-
-	@Parameter(property = "chartRepoPassword", required = false)
-	private var chartRepoPassword: String? = null
-
-	@Parameter(property = "chartRepoServerId", required = false)
-	private var chartRepoServerId: String? = null
-
-	@Parameter(property = "incubatorRepoUrl", defaultValue = "https://charts.helm.sh/incubator")
-	private var incubatorRepoUrl: String = "https://charts.helm.sh/incubator"
-
-	@Parameter(property = "addIncubatorRepo", defaultValue = "true")
-	private var addIncubatorRepo: Boolean = true
-
-	@Parameter(property = "forceAddRepos", defaultValue = "false")
-	private var forceAddRepos: Boolean = false
-
-	@Parameter(defaultValue = "\${settings}", readonly = true)
-	override lateinit var settings: Settings
 
 	@Parameter(property = "extraValuesFiles")
 	private val extraValuesFiles: List<String> = emptyList()
 
-	@Throws(MojoExecutionException::class)
-	override fun execute() {
+	override fun runMojo() {
 
 		if (skip) {
 			log.info("helm-package has been skipped")
@@ -91,9 +60,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				return
 			}
 
-			super.execute()
-
-			val targetHelmDir = File(target(), chartName())
+			val targetHelmDir = File(target(), chartName)
 
 			log.info("Clear target directory to ensure clean target package")
 			if (targetHelmDir.exists()) {
@@ -105,26 +72,10 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 			processHelmConfigFiles(targetHelmDir)
 			mergeValuesFiles(targetHelmDir, extraValuesFiles)
 
-			val helmAddFlags = if (forceAddRepos) listOf("--force-update") else emptyList()
-
-			if (addIncubatorRepo) {
-				executeHelmCmd(listOf("repo", "add", "incubator", incubatorRepoUrl) + helmAddFlags)
-			}
-			if (chartRepoUrl != null) {
-				val server by lazy { getServer(chartRepoServerId) }
-
-				val chartRepoUsername = chartRepoUsername ?: server?.username
-				val chartRepoPassword = chartRepoPassword ?: decryptPassword(server?.password)
-
-				val authParams = if (chartRepoUsername != null && chartRepoPassword != null) {
-					listOf("--username", chartRepoUsername, "--password", chartRepoPassword)
-				} else {
-					emptyList()
-				}
-				executeHelmCmd(listOf("repo", "add", "chartRepo", chartRepoUrl!!) + authParams + helmAddFlags)
-			}
+			validateAndAddRepos()
+			validateAndAddRegistries()
 			executeHelmCmd(listOf("dependency", "update"), directory = targetHelmDir)
-			executeHelmCmd(listOf("package", chartName(), "--version", chartVersion))
+			executeHelmCmd(listOf("package", chartName, "--version", chartVersion))
 
 			ensureChartFileExists()
 
@@ -134,20 +85,17 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 	}
 
 	private fun ensureChartFileExists() {
-
 		val chartTarGzFile = chartTarGzFile()
 
-		if (!chartTarGzFile.exists()) {
-			throw RuntimeException(
-				"File ${chartTarGzFile.absolutePath} not found. Chart must be created in package phase first."
-			)
-		} else {
-			log.info("Successfully packaged chart and saved it to: $chartTarGzFile")
+		check(chartTarGzFile.exists()) {
+			"File ${chartTarGzFile.absolutePath} not found. Chart must be created in package phase first."
 		}
+
+		log.info("Successfully packaged chart and saved it to: $chartTarGzFile")
 	}
 
 	private fun processHelmConfigFiles(targetHelmDir: File) {
-		val directory = File("${project.basedir}/${chartFolder()}")
+		val directory = File("${project.basedir}/$chartFolder")
 		log.debug("Processing helm files in directory ${directory.absolutePath}")
 		val processedFiles = directory.walkTopDown().filter { it.isFile }.onEach { file ->
 			log.debug("Processing helm file ${file.absolutePath}")

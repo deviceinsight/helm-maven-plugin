@@ -16,8 +16,12 @@
 
 package com.deviceinsight.helm
 
+import com.deviceinsight.helm.model.Registry
+import com.deviceinsight.helm.model.Repo
+import com.deviceinsight.helm.model.validate
 import com.deviceinsight.helm.util.HelmDownloader
 import com.deviceinsight.helm.util.PlatformDetector
+import com.deviceinsight.helm.util.ServerAuthentication
 import org.apache.maven.artifact.repository.ArtifactRepository
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.plugin.AbstractMojo
@@ -25,38 +29,54 @@ import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import org.apache.maven.repository.RepositorySystem
+import org.apache.maven.settings.Settings
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher
 import java.io.File
 import java.net.URI
 import kotlin.concurrent.thread
 
-abstract class AbstractHelmMojo : AbstractMojo() {
+abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
+	@Parameter(property = "skip", defaultValue = "false")
+	private var skip: Boolean = false
 
-	@Parameter(property = "chartVersion", required = false, defaultValue = "\${project.model.version}")
+	@Parameter(property = "chartVersion", required = true, defaultValue = "\${project.model.version}")
 	protected lateinit var chartVersion: String
 
-	@Parameter(property = "chartFolder", required = false)
-	private var chartFolder: String? = null
+	@Parameter(property = "chartName", required = true, defaultValue = "\${project.artifactId}")
+	protected lateinit var chartName: String
 
-	@Parameter(property = "chartName", required = false)
-	private var chartName: String? = null
+	@Parameter(property = "chartFolder", required = true, defaultValue = "src/main/helm/\${chartName}")
+	protected lateinit var chartFolder: String
 
-	@Parameter(property = "helmGroupId", defaultValue = "com.deviceinsight.helm")
+	@Parameter(property = "helmGroupId", required = true, defaultValue = "com.deviceinsight.helm")
 	private lateinit var helmGroupId: String
 
-	@Parameter(property = "helmArtifactId", defaultValue = "helm")
+	@Parameter(property = "helmArtifactId", required = true, defaultValue = "helm")
 	private lateinit var helmArtifactId: String
 
 	@Parameter(property = "helmVersion", required = true, defaultValue = "3.11.2")
 	private lateinit var helmVersion: String
 
-	@Parameter(property = "helmDownloadUrl", defaultValue = "https://get.helm.sh/")
+	@Parameter(property = "helmDownloadUrl", required = true, defaultValue = "https://get.helm.sh/")
 	private lateinit var helmDownloadUrl: URI
+
+	@Parameter(property = "repos")
+	protected var repos: List<Repo> = emptyList()
+
+	@Parameter(property = "registries")
+	protected var registries: List<Registry> = emptyList()
 
 	@Parameter(readonly = true, required = true, defaultValue = "\${localRepository}")
 	private lateinit var localRepository: ArtifactRepository
 
 	@Parameter(readonly = true, required = true, defaultValue = "\${project.remoteArtifactRepositories}")
 	private lateinit var remoteRepositories: List<ArtifactRepository>
+
+	@Component(role = SecDispatcher::class, hint = "default")
+	override lateinit var securityDispatcher: SecDispatcher
+
+	@Parameter(defaultValue = "\${settings}", readonly = true)
+	override lateinit var settings: Settings
 
 	@Component
 	protected lateinit var project: MavenProject
@@ -67,11 +87,76 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 	private val helmDownloader = HelmDownloader(log)
 	private lateinit var helm: String
 
+	final override fun execute() {
+		if (skip) {
+			log.info("helm-deploy has been skipped")
+			return
+		}
+
+		runMojo()
+	}
+
+	abstract fun runMojo()
+
+	protected fun validateAndAddRepos() {
+		repos.validate()
+
+		repos.forEach { repo ->
+			getServer(repo.serverId)?.let { server ->
+				repo.username = server.username
+				repo.password = server.password
+			}
+		}
+
+		repos.forEach {
+			log.debug("Adding chart repo ${it.name} with url ${it.url}")
+
+			val cmd = mutableListOf("repo", "add", it.name, it.url)
+			val username = it.username
+			val password = it.password
+			if (username != null && password != null) {
+				cmd += listOf("--username", username)
+				cmd += listOf("--password-stdin")
+			}
+			if (it.passCredentials) cmd += listOf("--pass-credentials")
+			if (it.forceUpdate) cmd += listOf("--force-update")
+
+			executeHelmCmd(cmd, stdinData = password?.toByteArray())
+		}
+	}
+
+	protected fun validateAndAddRegistries() {
+		registries.validate()
+
+		registries.forEach { registry ->
+			getServer(registry.serverId)?.let { server ->
+				registry.username = server.username
+				registry.password = server.password
+			}
+		}
+
+		registries.forEach {
+			log.debug("Adding chart registry ${it.url}")
+
+			val hostWithPort = with(URI(it.url)) {
+				host + if (port != -1) ":${port}" else ""
+			}
+			val cmd = listOf(
+				"registry", "login", hostWithPort,
+				"--username", it.username!!,
+				"--password-stdin"
+			)
+
+			executeHelmCmd(cmd, stdinData = it.password!!.toByteArray())
+		}
+	}
+
 	protected fun executeHelmCmd(
 		cmd: List<String>,
 		directory: File = target(),
 		logStdoutToInfo: Boolean = false,
-		redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE
+		redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE,
+		stdinData: ByteArray? = null
 	) {
 		initializeHelm()
 
@@ -100,6 +185,10 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 			proc.errorStream.bufferedReader().lines().forEach { log.error("Output: $it") }
 		}
 
+		if (stdinData != null) {
+			proc.outputStream.use { it.write(stdinData) }
+		}
+
 		proc.waitFor()
 		stdoutPrinter.join()
 		stderrPrinter.join()
@@ -111,8 +200,8 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 		}
 	}
 
-	fun initializeHelm() {
-		if(!this::helm.isInitialized) {
+	private fun initializeHelm() {
+		if (!this::helm.isInitialized) {
 			checkHelmVersion()
 			resolveHelmBinary()
 		}
@@ -162,11 +251,7 @@ abstract class AbstractHelmMojo : AbstractMojo() {
 
 	protected fun target() = File(project.build.directory).resolve("helm")
 
-	protected fun chartTarGzFile() = target().resolve("${chartName()}-${chartVersion}.tgz")
+	protected fun chartTarGzFile() = target().resolve("$chartName-$chartVersion.tgz")
 
-	protected fun chartName(): String = chartName ?: project.artifactId
-
-	protected fun chartFolder() = chartFolder ?: "src/main/helm/${chartName()}"
-
-	protected fun isChartFolderPresent() = File("${project.basedir}/${chartFolder()}").exists()
+	protected fun isChartFolderPresent() = File("${project.basedir}/$chartFolder").exists()
 }

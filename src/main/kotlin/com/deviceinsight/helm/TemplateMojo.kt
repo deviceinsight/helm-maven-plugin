@@ -40,8 +40,7 @@ class TemplateMojo : ResolveHelmMojo() {
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
 
-	@Throws(MojoExecutionException::class)
-	override fun execute() {
+	override fun runMojo() {
 
 		if (skip) {
 			log.info("helm-template has been skipped")
@@ -49,19 +48,16 @@ class TemplateMojo : ResolveHelmMojo() {
 		}
 
 		try {
-
 			if (!isChartFolderPresent()) {
 				log.warn("No sources found, skipping helm template.")
 				return
 			}
 
-			super.execute()
-
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				listOf("template", "--values", valuesFilePath, chartName())
+				listOf("template", "--values", valuesFilePath, chartName)
 			} else {
-				listOf("template", chartName())
+				listOf("template", chartName)
 			}
 
 			var file = File(outputFile)

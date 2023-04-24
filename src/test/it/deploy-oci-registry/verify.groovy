@@ -1,5 +1,7 @@
+def logLines = new File(basedir, "build.log").readLines()
+
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +16,9 @@
  * limitations under the License.
  */
 
-package com.deviceinsight.helm
+// Package goal
+assert logLines.any { it.contains("Successfully packaged chart and saved it to") }
 
-import org.apache.maven.plugins.annotations.LifecyclePhase
-import org.apache.maven.plugins.annotations.Mojo
-
-@Mojo(name = "resolve", defaultPhase = LifecyclePhase.NONE)
-open class ResolveHelmMojo : AbstractHelmMojo() {
-
-	override fun runMojo() {
-		executeHelmCmd(listOf("version"))
-	}
-
-}
+// Deploy goal
+assert logLines.any { it.contains("Pushed") && it.contains("publish-chart-autodetected/published-chart:0.1.0") }
+assert logLines.any { it.contains("Pushed") && it.contains("publish-chart-without-login/published-chart:0.1.0") }

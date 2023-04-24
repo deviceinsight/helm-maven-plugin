@@ -1,0 +1,128 @@
+<!--
+  ~ Copyright 2023 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.deviceinsight.helm</groupId>
+		<artifactId>it-parent</artifactId>
+		<version>@project.version@</version>
+		<relativePath>../it-parent.xml</relativePath>
+	</parent>
+
+	<artifactId>test</artifactId>
+
+	<description>
+		Publish and download a chart from ChartMuseum
+	</description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<images>
+						<image>
+							<name>ghcr.io/helm/chartmuseum:v0.14.0</name>
+							<alias>chartmuseum</alias>
+							<run>
+								<ports>
+									<port>chartmuseum.port:8080</port>
+								</ports>
+								<env>
+									<DEBUG>1</DEBUG>
+									<STORAGE>local</STORAGE>
+									<STORAGE_LOCAL_ROOTDIR>/tmp/charts</STORAGE_LOCAL_ROOTDIR>
+								</env>
+								<wait>
+									<log>Starting ChartMuseum</log>
+									<time>5000</time>
+								</wait>
+								<log>
+									<file>${project.build.directory}/chartmuseum.log</file>
+								</log>
+							</run>
+						</image>
+					</images>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>start</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>stop</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+							<goal>remove</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.deviceinsight.helm</groupId>
+				<artifactId>helm-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>publish-chart</id>
+						<phase>package</phase>
+						<goals>
+							<goal>package</goal>
+							<goal>deploy</goal>
+						</goals>
+						<configuration>
+							<repos>
+								<repo>
+									<url>http://localhost:${chartmuseum.port}/</url>
+									<type>CHART_MUSEUM</type>
+								</repo>
+							</repos>
+							<chartFolder>published-chart</chartFolder>
+							<chartName>published-chart</chartName>
+							<chartVersion>0.1.0</chartVersion>
+						</configuration>
+					</execution>
+					<execution>
+						<id>download-chart</id>
+						<phase>package</phase>
+						<goals>
+							<goal>package</goal>
+							<goal>deploy</goal>
+						</goals>
+						<configuration>
+							<repos>
+								<repo>
+									<url>http://localhost:${chartmuseum.port}/</url>
+								</repo>
+							</repos>
+							<chartFolder>dependent-chart</chartFolder>
+							<chartName>dependent-chart</chartName>
+							<chartVersion>0.1.0</chartVersion>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

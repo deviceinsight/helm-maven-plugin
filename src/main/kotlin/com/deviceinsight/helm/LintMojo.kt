@@ -37,8 +37,7 @@ class LintMojo : ResolveHelmMojo() {
 	@Parameter(property = "helm.skip", defaultValue = "false")
 	private var skip: Boolean = false
 
-	@Throws(MojoExecutionException::class)
-	override fun execute() {
+	override fun runMojo() {
 
 		if (skip) {
 			log.info("helm-lint has been skipped")
@@ -52,9 +51,7 @@ class LintMojo : ResolveHelmMojo() {
 				return
 			}
 
-			super.execute()
-
-			val command = mutableListOf("lint", chartName())
+			val command = mutableListOf("lint", chartName)
 
 			if (strictLint) {
 				command.add("--strict")
