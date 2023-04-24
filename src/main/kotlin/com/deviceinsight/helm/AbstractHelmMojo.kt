@@ -54,7 +54,7 @@ abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
 	@Parameter(property = "helmArtifactId", required = true, defaultValue = "helm")
 	private lateinit var helmArtifactId: String
 
-	@Parameter(property = "helmVersion", required = true, defaultValue = "3.11.2")
+	@Parameter(property = "helmVersion", required = true, defaultValue = "3.11.3")
 	private lateinit var helmVersion: String
 
 	@Parameter(property = "helmDownloadUrl", required = true, defaultValue = "https://get.helm.sh/")
