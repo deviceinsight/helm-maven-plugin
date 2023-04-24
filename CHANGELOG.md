@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## Version 2.13.0
 
 * Support escaping placeholders with backslash e.g. `\${MY_ENV_VAR}` will no longer be expanded
