@@ -65,7 +65,7 @@ that the correct docker image is used. An example snippet:
 ```yaml
 #[...]
 containers:
-  - name: { { .Chart.Name } }
+  - name: "{{ .Chart.Name }}"
     image: "{{ .Values.image.repository }}/rubicon:${project.version}"
 #[...]
 ```
