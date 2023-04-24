@@ -1,5 +1,3 @@
-def logLines = new File(basedir, "build.log").readLines()
-
 /*
  * Copyright 2023 the original author or authors.
  *
@@ -15,6 +13,8 @@ def logLines = new File(basedir, "build.log").readLines()
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+def logLines = new File(basedir, "build.log").readLines()
 
 // Package goal
 assert logLines.any { it.contains("Successfully packaged chart and saved it to") }
