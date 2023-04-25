@@ -62,23 +62,6 @@
 						</image>
 					</images>
 				</configuration>
-				<executions>
-					<execution>
-						<id>start</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>start</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>stop</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-							<goal>remove</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.deviceinsight.helm</groupId>
@@ -95,7 +78,7 @@
 							<repos>
 								<repo>
 									<url>http://localhost:${chartmuseum.port}/</url>
-									<type>CHART_MUSEUM</type>
+									<type>CHARTMUSEUM</type>
 								</repo>
 							</repos>
 							<chartFolder>published-chart</chartFolder>

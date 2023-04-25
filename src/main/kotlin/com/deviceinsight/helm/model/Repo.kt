@@ -20,7 +20,7 @@ package com.deviceinsight.helm.model
 class Repo {
 
 	var name: String = "chartRepo"
-	var type: Type = Type.CHART_MUSEUM
+	var type: Type = Type.CHARTMUSEUM
 	lateinit var url: String
 	var serverId: String? = null
 	var username: String? = null
@@ -41,7 +41,7 @@ class Repo {
 	}
 
 	enum class Type {
-		CHART_MUSEUM, ARTIFACTORY
+		CHARTMUSEUM, ARTIFACTORY
 	}
 }
 

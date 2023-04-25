@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
 
 @Mojo(name = "template", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-class TemplateMojo : ResolveHelmMojo() {
+class TemplateMojo : AbstractHelmMojo() {
 
 	/**
 	 * An optional values.yaml file that is used to render the template, relative to `${project.basedir}`.
@@ -37,16 +37,7 @@ class TemplateMojo : ResolveHelmMojo() {
 	@Parameter(property = "outputFile", defaultValue = "\${project.build.directory}/test-classes/helm.yaml")
 	private lateinit var outputFile: String
 
-	@Parameter(property = "helm.skip", defaultValue = "false")
-	private var skip: Boolean = false
-
 	override fun runMojo() {
-
-		if (skip) {
-			log.info("helm-template has been skipped")
-			return
-		}
-
 		try {
 			if (!isChartFolderPresent()) {
 				log.warn("No sources found, skipping helm template.")

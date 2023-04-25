@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter
 
 
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-class LintMojo : ResolveHelmMojo() {
+class LintMojo : AbstractHelmMojo() {
 
 	/**
 	 * An optional values.yaml file that is used to run linting, relative to `${project.basedir}`.
@@ -34,16 +34,7 @@ class LintMojo : ResolveHelmMojo() {
 	@Parameter(property = "strictLint", required = false, defaultValue = "false")
 	private var strictLint: Boolean = false
 
-	@Parameter(property = "helm.skip", defaultValue = "false")
-	private var skip: Boolean = false
-
 	override fun runMojo() {
-
-		if (skip) {
-			log.info("helm-lint has been skipped")
-			return
-		}
-
 		try {
 
 			if (!isChartFolderPresent()) {

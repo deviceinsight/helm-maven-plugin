@@ -78,7 +78,7 @@ abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
 	@Parameter(defaultValue = "\${settings}", readonly = true)
 	override lateinit var settings: Settings
 
-	@Component
+	@Parameter(defaultValue = "\${project}", readonly = true)
 	protected lateinit var project: MavenProject
 
 	@Component
@@ -89,7 +89,7 @@ abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
 
 	final override fun execute() {
 		if (skip) {
-			log.info("helm-deploy has been skipped")
+			log.info("execution has been skipped")
 			return
 		}
 
@@ -115,11 +115,10 @@ abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
 			val username = it.username
 			val password = it.password
 			if (username != null && password != null) {
-				cmd += listOf("--username", username)
-				cmd += listOf("--password-stdin")
+				cmd += listOf("--username", username, "--password-stdin")
 			}
-			if (it.passCredentials) cmd += listOf("--pass-credentials")
-			if (it.forceUpdate) cmd += listOf("--force-update")
+			if (it.passCredentials) cmd += "--pass-credentials"
+			if (it.forceUpdate) cmd += "--force-update"
 
 			executeHelmCmd(cmd, stdinData = password?.toByteArray())
 		}
@@ -201,7 +200,7 @@ abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
 	}
 
 	private fun initializeHelm() {
-		if (!this::helm.isInitialized) {
+		if (!::helm.isInitialized) {
 			checkHelmVersion()
 			resolveHelmBinary()
 		}

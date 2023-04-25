@@ -57,23 +57,6 @@
 						</image>
 					</images>
 				</configuration>
-				<executions>
-					<execution>
-						<id>start</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>start</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>stop</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-							<goal>remove</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.deviceinsight.helm</groupId>

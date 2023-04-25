@@ -33,26 +33,17 @@ import java.io.IOException
  * Packages helm charts
  */
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
-class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
+class PackageMojo : AbstractHelmMojo(), ServerAuthentication {
 
 	companion object {
 		private val PLACEHOLDER_REGEX = Regex("""(?<!\\)\$\{(.*?)}""")
 		private val SUBSTITUTED_EXTENSIONS = setOf("json", "tpl", "yml", "yaml")
 	}
 
-	@Parameter(property = "helm.skip", defaultValue = "false")
-	private var skip: Boolean = false
-
 	@Parameter(property = "extraValuesFiles")
 	private val extraValuesFiles: List<String> = emptyList()
 
 	override fun runMojo() {
-
-		if (skip) {
-			log.info("helm-package has been skipped")
-			return
-		}
-
 		try {
 
 			if (!isChartFolderPresent()) {

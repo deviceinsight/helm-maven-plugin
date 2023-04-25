@@ -73,10 +73,15 @@ class DeployMojo : AbstractHelmMojo() {
 				chartRepoName = repos.first().name
 			} else if (registries.size == 1 && repos.isEmpty()) {
 				chartRegistryUrl = registries.first().url
+			} else if (registries.isEmpty() && repos.isEmpty()) {
+				error(
+					"It is necessary to specify chartRepoName or chartRegistryUrl explicitly " +
+						"since there is no chart repo / chart registry configured"
+				)
 			} else {
 				error(
-					"It is necessary to specify chartRepoName or chartRegistryUrl since there is more than one " +
-						"chart repo / chart registry configured"
+					"It is necessary to specify chartRepoName or chartRegistryUrl explicitly " +
+						"since there is more than one chart repo / chart registry configured"
 				)
 			}
 		}
@@ -236,7 +241,7 @@ private data class ChartRepositoryDeploymentRequest(
 
 	init {
 		when (chartRepoType) {
-			Repo.Type.CHART_MUSEUM -> {
+			Repo.Type.CHARTMUSEUM -> {
 				chartPublishMethod = "POST"
 				chartPublishUrl = "$chartRepoUrl/api/charts"
 				chartDeleteUrl = "$chartRepoUrl/api/charts/$chartName/$chartVersion"
