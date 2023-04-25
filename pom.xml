@@ -121,7 +121,6 @@
 
 	<build>
 		<sourceDirectory>src/main/kotlin</sourceDirectory>
-		<testSourceDirectory>src/test/kotlin</testSourceDirectory>
 
 		<plugins>
 			<plugin>
@@ -136,13 +135,6 @@
 							<goal>compile</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>test-compile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>test-compile</goal>
-						</goals>
-					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -153,14 +145,6 @@
 					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
 					<goalPrefix>helm</goalPrefix>
 				</configuration>
-				<executions>
-					<execution>
-						<id>mojo-descriptor</id>
-						<goals>
-							<goal>descriptor</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -168,18 +152,12 @@
 				<version>${maven-compiler-plugin.version}</version>
 				<executions>
 					<execution>
-						<id>compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
+						<id>default-compile</id>
+						<phase>none</phase>
 					</execution>
 					<execution>
-						<id>testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
+						<id>default-testCompile</id>
+						<phase>none</phase>
 					</execution>
 				</executions>
 			</plugin>
