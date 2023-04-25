@@ -30,18 +30,18 @@
 
 	<properties>
 		<!-- Compiler -->
-		<kotlin.version>1.8.10</kotlin.version>
+		<kotlin.version>1.8.21</kotlin.version>
 		<kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Maven -->
-		<maven.version>3.6.2</maven.version>
-		<maven-plugin-tools.version>3.8.1</maven-plugin-tools.version>
+		<maven.version>3.9.1</maven.version>
+		<maven-plugin-tools.version>3.8.2</maven-plugin-tools.version>
 
 		<!-- Project dependencies -->
-		<jackson-bom.version>2.14.2</jackson-bom.version>
+		<jackson-bom.version>2.15.0</jackson-bom.version>
 		<httpclient.version>4.5.14</httpclient.version>
 		<plexus-sec-dispatcher.version>1.4</plexus-sec-dispatcher.version>
 
