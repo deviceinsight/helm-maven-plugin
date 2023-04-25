@@ -48,12 +48,6 @@ abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
 	@Parameter(property = "chartFolder", required = true, defaultValue = "src/main/helm/\${chartName}")
 	protected lateinit var chartFolder: String
 
-	@Parameter(property = "helmGroupId", required = true, defaultValue = "com.deviceinsight.helm")
-	private lateinit var helmGroupId: String
-
-	@Parameter(property = "helmArtifactId", required = true, defaultValue = "helm")
-	private lateinit var helmArtifactId: String
-
 	@Parameter(property = "helmVersion", required = true, defaultValue = "3.11.3")
 	private lateinit var helmVersion: String
 
@@ -225,8 +219,8 @@ abstract class AbstractHelmMojo : AbstractMojo(), ServerAuthentication {
 	private fun resolveHelmBinary() {
 		val platformIdentifier = PlatformDetector.detectHelmReleasePlatformIdentifier()
 		val helmArtifact = repositorySystem.createArtifactWithClassifier(
-			helmGroupId,
-			helmArtifactId,
+			"com.deviceinsight.helm",
+			"helm",
 			helmVersion,
 			"binary",
 			platformIdentifier
