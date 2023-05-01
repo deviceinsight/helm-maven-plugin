@@ -25,7 +25,7 @@
 		<httpclient.version>4.5.14</httpclient.version>
 		<plexus-sec-dispatcher.version>1.4</plexus-sec-dispatcher.version>
 
-		<junit.jupiter.version>5.9.2</junit.jupiter.version>
+		<junit.jupiter.version>5.9.3</junit.jupiter.version>
 		<assertj-core.version>3.24.2</assertj-core.version>
 
 		<dokka-maven-plugin.version>1.8.10</dokka-maven-plugin.version>
