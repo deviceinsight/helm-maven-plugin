@@ -45,12 +45,12 @@ class LintMojo : AbstractHelmMojo() {
 			val command = mutableListOf("lint", chartName)
 
 			if (strictLint) {
-				command.add("--strict")
+				command += "--strict"
 			}
 
 			if (valuesFile != null) {
-				command.add("--values")
-				command.add(project.basedir.resolve(valuesFile!!).absolutePath)
+				command += "--values"
+				command += project.basedir.resolve(valuesFile!!).absolutePath
 			}
 
 			executeHelmCmd(command, logStdoutToInfo = true)

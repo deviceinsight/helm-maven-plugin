@@ -27,9 +27,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 
-class HelmDownloader(
-	private val log: Log
-) {
+class HelmDownloader(private val log: Log) {
 	fun downloadAndInstallHelm(targetFile: File, helmVersion: String, helmDownloadUri: URI) {
 		val platformIdentifier = PlatformDetector.detectHelmReleasePlatformIdentifier()
 		val fileName = "helm-v$helmVersion-$platformIdentifier"

@@ -126,10 +126,7 @@ class DeployMojo : AbstractHelmMojo() {
 
 	private fun executeDeploymentRequest(deploymentRequest: ChartDeploymentRequest) {
 		when (deploymentRequest) {
-			is ChartRepositoryDeploymentRequest -> {
-				publishToRepo(deploymentRequest)
-			}
-
+			is ChartRepositoryDeploymentRequest -> publishToRepo(deploymentRequest)
 			is ChartRegistryDeploymentRequest -> {
 				val chartTgz = deploymentRequest.resolveChartTgzFile(project).absolutePath
 				executeHelmCmd(listOf("push", chartTgz, deploymentRequest.remote))
@@ -140,7 +137,7 @@ class DeployMojo : AbstractHelmMojo() {
 
 	private fun publishToRepo(chartDeploymentRequest: ChartRepositoryDeploymentRequest) {
 		if (!chartFileExists(chartDeploymentRequest)) {
-			log.info("Skip module ${chartDeploymentRequest.chartName}. There is no tar file present.")
+			log.info("Skip module ${chartDeploymentRequest.chartName}. There is no tgz file present.")
 			return
 		}
 
@@ -189,8 +186,8 @@ class DeployMojo : AbstractHelmMojo() {
 	private fun publishChart(chartDeploymentRequest: ChartRepositoryDeploymentRequest) {
 		val chartTarGzFile = chartDeploymentRequest.resolveChartTgzFile(project)
 		log.debug(
-			"Uploading $chartTarGzFile to " +
-				"${chartDeploymentRequest.chartPublishUrl} using ${chartDeploymentRequest.chartPublishMethod}"
+			"Uploading $chartTarGzFile to ${chartDeploymentRequest.chartPublishUrl} using " +
+				chartDeploymentRequest.chartPublishMethod
 		)
 
 		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
