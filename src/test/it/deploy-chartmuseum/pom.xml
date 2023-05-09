@@ -61,23 +61,6 @@
 						</image>
 					</images>
 				</configuration>
-				<executions>
-					<execution>
-						<id>start</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>start</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>stop</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-							<goal>remove</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.deviceinsight.helm</groupId>
@@ -91,12 +74,15 @@
 							<goal>deploy</goal>
 						</goals>
 						<configuration>
+							<repos>
+								<repo>
+									<url>http://localhost:${chartmuseum.port}/</url>
+									<type>CHARTMUSEUM</type>
+								</repo>
+							</repos>
 							<chartFolder>published-chart</chartFolder>
 							<chartName>published-chart</chartName>
 							<chartVersion>0.1.0</chartVersion>
-							<chartRepoUrl>http://localhost:${chartmuseum.port}/</chartRepoUrl>
-							<skipSnapshots>false</skipSnapshots>
-							<forceAddRepos>true</forceAddRepos>
 						</configuration>
 					</execution>
 					<execution>
@@ -107,10 +93,14 @@
 							<goal>deploy</goal>
 						</goals>
 						<configuration>
+							<repos>
+								<repo>
+									<url>http://localhost:${chartmuseum.port}/</url>
+								</repo>
+							</repos>
 							<chartFolder>dependent-chart</chartFolder>
 							<chartName>dependent-chart</chartName>
-							<chartRepoUrl>http://localhost:${chartmuseum.port}/</chartRepoUrl>
-							<skipSnapshots>false</skipSnapshots>
+							<chartVersion>0.1.0</chartVersion>
 						</configuration>
 					</execution>
 				</executions>

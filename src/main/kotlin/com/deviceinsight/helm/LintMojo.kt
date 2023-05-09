@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter
 
 
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-class LintMojo : ResolveHelmMojo() {
+class LintMojo : AbstractHelmMojo() {
 
 	/**
 	 * An optional values.yaml file that is used to run linting, relative to `${project.basedir}`.
@@ -34,17 +34,7 @@ class LintMojo : ResolveHelmMojo() {
 	@Parameter(property = "strictLint", required = false, defaultValue = "false")
 	private var strictLint: Boolean = false
 
-	@Parameter(property = "helm.skip", defaultValue = "false")
-	private var skip: Boolean = false
-
-	@Throws(MojoExecutionException::class)
-	override fun execute() {
-
-		if (skip) {
-			log.info("helm-lint has been skipped")
-			return
-		}
-
+	override fun runMojo() {
 		try {
 
 			if (!isChartFolderPresent()) {
@@ -52,20 +42,18 @@ class LintMojo : ResolveHelmMojo() {
 				return
 			}
 
-			super.execute()
-
-			val command = mutableListOf(helm, "lint", chartName())
+			val command = mutableListOf("lint", chartName)
 
 			if (strictLint) {
-				command.add("--strict")
+				command += "--strict"
 			}
 
 			if (valuesFile != null) {
-				command.add("--values")
-				command.add(quoteFilePath(project.basedir.resolve(valuesFile!!).absolutePath))
+				command += "--values"
+				command += project.basedir.resolve(valuesFile!!).absolutePath
 			}
 
-			executeCmd(command, logStdoutToInfo = true)
+			executeHelmCmd(command, logStdoutToInfo = true)
 
 		} catch (e: Exception) {
 			throw MojoExecutionException("Error rendering helm lint: ${e.message}", e)

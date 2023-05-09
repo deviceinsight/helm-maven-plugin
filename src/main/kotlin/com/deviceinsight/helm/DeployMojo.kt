@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,27 @@
 
 package com.deviceinsight.helm
 
-import com.deviceinsight.helm.util.ServerAuthentication
+import com.deviceinsight.helm.model.Repo
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpDelete
 import org.apache.http.client.methods.RequestBuilder
 import org.apache.http.entity.FileEntity
 import org.apache.http.impl.client.BasicCredentialsProvider
-import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClientBuilder
-import org.apache.maven.plugin.AbstractMojo
-import org.apache.maven.plugin.MojoExecutionException
-import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
-import org.apache.maven.settings.Settings
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher
 import java.io.File
-import java.util.Collections
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Publishes helm charts
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
-class DeployMojo : AbstractMojo(), ServerAuthentication {
+class DeployMojo : AbstractHelmMojo() {
 
 	companion object {
 		private val deployAtEndDeploymentRequests: MutableList<ChartDeploymentRequest> =
@@ -51,153 +45,120 @@ class DeployMojo : AbstractMojo(), ServerAuthentication {
 		private val readyProjectsCounter: AtomicInteger = AtomicInteger()
 	}
 
-	@Component(role = SecDispatcher::class, hint = "default")
-	override lateinit var securityDispatcher: SecDispatcher
+	@Parameter(property = "chartRepoName", required = false)
+	private var chartRepoName: String? = null
 
-	/**
-	 * Name of the chart
-	 */
-	@Parameter(property = "chartName", required = false)
-	private var chartName: String? = null
+	@Parameter(property = "chartRegistryUrl", required = false)
+	private var chartRegistryUrl: String? = null
 
-	@Parameter(property = "chartVersion", required = false)
-	private var chartVersion: String? = null
-
-	@Parameter(property = "chartRepoUrl", required = false)
-	private var chartRepoUrl: String? = null
-
-	@Parameter(property = "chartPublishUrl", required = false)
-	private var chartPublishUrl: String? = null
-
-	@Parameter(property = "chartPublishMethod", required = false, defaultValue = "POST")
-	private var chartPublishMethod: String = "POST"
-
-	@Parameter(property = "chartDeleteUrl", required = false)
-	private var chartDeleteUrl: String? = null
-
-	@Parameter(property = "chartRepoUsername", required = false)
-	private var chartRepoUsername: String? = null
-
-	@Parameter(property = "chartRepoPassword", required = false)
-	private var chartRepoPassword: String? = null
-
-	@Parameter(property = "chartRepoServerId", required = false)
-	private var chartRepoServerId: String? = null
+	@Parameter(property = "deployAtEnd", defaultValue = "false")
+	private var deployAtEnd: Boolean = false
 
 	@Parameter(property = "skipSnapshots", required = false, defaultValue = "true")
 	private var skipSnapshots: Boolean = true
 
-	@Parameter(defaultValue = "\${project}", readonly = true, required = true)
-	private lateinit var project: MavenProject
 
 	@Parameter(defaultValue = "\${reactorProjects}", required = true, readonly = true)
 	private lateinit var reactorProjects: List<MavenProject>
 
-	@Parameter(defaultValue = "\${settings}", readonly = true)
-	override lateinit var settings: Settings
-
-	@Parameter(property = "helm.skip", defaultValue = "false")
-	private var skip: Boolean = false
-
-	@Parameter(property = "helm.deployAtEnd", defaultValue = "false")
-	private var deployAtEnd: Boolean = false
-
-	@Throws(MojoExecutionException::class)
-	override fun execute() {
-
-		if (skip) {
-			log.info("helm-deploy has been skipped")
-			return
+	override fun runMojo() {
+		check(chartRepoName == null || chartRegistryUrl == null) {
+			"chartRepoName and chartRegistryUrl must not be set at the same time"
 		}
 
-		try {
-			val server by lazy { getServer(chartRepoServerId) }
+		if (chartRepoName == null && chartRegistryUrl == null) {
+			// If there is only one repo or registry specified we autodetect the name/url property
 
-			val chartRepoUsername = chartRepoUsername ?: server?.username
-			val chartRepoPassword = chartRepoPassword ?: decryptPassword(server?.password)
-
-			val chartDeploymentRequest =
-				ChartDeploymentRequest(chartName, chartVersion, chartPublishMethod, chartRepoUrl, chartPublishUrl,
-					chartDeleteUrl, chartRepoUsername, chartRepoPassword, skipSnapshots, project)
-
-			if (!deployAtEnd && (skipSnapshots && chartDeploymentRequest.isSnapshotVersion())) {
-				log.info("Version contains SNAPSHOT and 'skipSnapshots' option is enabled. Not publishing.")
-				return
-			}
-
-			var deployAtEndRequested = false
-
-			if (deployAtEnd) {
-				deployAtEndDeploymentRequests.add(chartDeploymentRequest)
-				deployAtEndRequested = true
+			if (repos.size == 1 && registries.isEmpty()) {
+				chartRepoName = repos.first().name
+			} else if (registries.size == 1 && repos.isEmpty()) {
+				chartRegistryUrl = registries.first().url
+			} else if (registries.isEmpty() && repos.isEmpty()) {
+				error("Please configure at least one chart repository or registry")
 			} else {
-				publishToRepo(chartDeploymentRequest)
+				error(
+					"It is necessary to specify chartRepoName or chartRegistryUrl explicitly " +
+						"since there is more than one chart repo / chart registry configured"
+				)
 			}
+		}
 
-			val projectsReady = readyProjectsCounter.incrementAndGet() == reactorProjects.size
+		val deploymentRequest = createDeploymentRequest()
+		if (deploymentRequest is ChartRegistryDeploymentRequest) {
+			validateAndAddRegistries()
+		}
 
-			if (projectsReady) {
-				synchronized(deployAtEndDeploymentRequests) {
-					deployAtEndDeploymentRequests.forEach { publishToRepo(it) }
-				}
-			} else if (deployAtEndRequested) {
-				log.info("Deploy helm chart: ${chartDeploymentRequest.chartName()} at end.")
-			}
+		if (skipSnapshots && chartVersion.endsWith("-SNAPSHOT")) {
+			log.info("Version contains SNAPSHOT and 'skipSnapshots' option is enabled. Not publishing.")
+		} else if (deployAtEnd) {
+			deployAtEndDeploymentRequests.add(deploymentRequest)
+			log.info("Deploy helm chart: $chartName at end.")
+		} else {
+			executeDeploymentRequest(deploymentRequest)
+		}
 
-		} catch (e: Exception) {
-			throw MojoExecutionException("Error creating/publishing helm chart: ${e.message}", e)
+		val projectsReady = readyProjectsCounter.incrementAndGet() == reactorProjects.size
+		if (projectsReady && deployAtEndDeploymentRequests.isNotEmpty()) {
+			deployAtEndDeploymentRequests.forEach { executeDeploymentRequest(it) }
 		}
 	}
 
-	private fun publishToRepo(chartDeploymentRequest: ChartDeploymentRequest) {
+	private fun createDeploymentRequest() = if (chartRepoName != null) {
+		val deployRepo = checkNotNull(repos.find { it.name == chartRepoName }) {
+			"Unable to find repository to push the chart to in repository list (chartRepoName='$chartRepoName')"
+		}
 
+		ChartRepositoryDeploymentRequest(
+			chartName,
+			chartVersion,
+			deployRepo.url,
+			deployRepo.type,
+			deployRepo.username,
+			deployRepo.password
+		)
+	} else {
+		ChartRegistryDeploymentRequest(
+			chartName,
+			chartVersion,
+			chartRegistryUrl!!
+		)
+	}
+
+	private fun executeDeploymentRequest(deploymentRequest: ChartDeploymentRequest) {
+		when (deploymentRequest) {
+			is ChartRepositoryDeploymentRequest -> publishToRepo(deploymentRequest)
+			is ChartRegistryDeploymentRequest -> {
+				val chartTgz = deploymentRequest.resolveChartTgzFile(project).absolutePath
+				executeHelmCmd(listOf("push", chartTgz, deploymentRequest.remote))
+			}
+		}
+	}
+
+
+	private fun publishToRepo(chartDeploymentRequest: ChartRepositoryDeploymentRequest) {
 		if (!chartFileExists(chartDeploymentRequest)) {
-			log.info("Skip module ${chartDeploymentRequest.chartName()}. There is no tar file present.")
+			log.info("Skip module ${chartDeploymentRequest.chartName}. There is no tgz file present.")
 			return
 		}
 
-		if (chartDeploymentRequest.isSnapshotVersion()) {
+		if (chartDeploymentRequest.chartVersion.endsWith("-SNAPSHOT")) {
 			removeChartIfExists(chartDeploymentRequest)
 		}
 
 		publishChart(chartDeploymentRequest)
 	}
 
-	private fun chartFileExists(chartDeploymentRequest: ChartDeploymentRequest): Boolean {
-
-		val chartTarGzFile = chartDeploymentRequest.chartTarGzFile()
-		log.debug("Tar file location: ${chartTarGzFile.absolutePath}.")
-
-		return chartTarGzFile.exists()
+	private fun chartFileExists(chartDeploymentRequest: ChartRepositoryDeploymentRequest): Boolean {
+		val file = chartDeploymentRequest.resolveChartTgzFile(project)
+		log.debug("Tar file location: ${file.absolutePath}.")
+		return file.exists()
 	}
 
-	private fun publishChart(chartDeploymentRequest: ChartDeploymentRequest) {
-
-		val chartTarGzFile = chartDeploymentRequest.chartTarGzFile()
-
-		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
-
-			val request = RequestBuilder
-				.create(chartDeploymentRequest.chartPublishMethod)
-				.setUri(chartDeploymentRequest.chartPublishUrl())
-				.setEntity(FileEntity(chartTarGzFile))
-				.build()
-
-			httpClient.execute(request).use { response ->
-				val statusCode = response.statusLine.statusCode
-				if (statusCode < 200 || statusCode >= 300) {
-					throw RuntimeException("Unexpected status code when executing $chartPublishMethod request to " +
-						"chart repo ${chartDeploymentRequest.chartPublishUrl()}: $statusCode")
-				}
-				log.info("$chartTarGzFile uploaded successfully")
-			}
-		}
-	}
-
-	private fun removeChartIfExists(chartDeploymentRequest: ChartDeploymentRequest) {
+	private fun removeChartIfExists(chartDeploymentRequest: ChartRepositoryDeploymentRequest) {
+		val httpDelete = chartDeploymentRequest.chartDeleteUrl?.let { HttpDelete(it) } ?: return
 
 		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
-			httpClient.execute(HttpDelete(chartDeploymentRequest.chartDeleteUrl())).use { response ->
+			httpClient.execute(httpDelete).use { response ->
 				if (response.statusLine.statusCode == 200) {
 					log.info("Existing chart removed successfully")
 				}
@@ -205,46 +166,92 @@ class DeployMojo : AbstractMojo(), ServerAuthentication {
 		}
 	}
 
-	private fun createChartRepoClient(chartDeploymentRequest: ChartDeploymentRequest): CloseableHttpClient {
-		val clientBuilder = HttpClientBuilder.create()
+	private fun createChartRepoClient(chartDeploymentRequest: ChartRepositoryDeploymentRequest) =
+		HttpClientBuilder.create().apply {
 			// cookie management is disabled to avoid parsing errors of the Set-Cookie header
 			// see https://github.com/deviceinsight/helm-maven-plugin/issues/45
-			.disableCookieManagement()
+			disableCookieManagement()
 
-		if (chartDeploymentRequest.chartRepoUsername != null && chartDeploymentRequest.chartRepoPassword != null) {
-			clientBuilder.setDefaultCredentialsProvider(BasicCredentialsProvider().apply {
-				setCredentials(
-					AuthScope.ANY,
-					UsernamePasswordCredentials(chartDeploymentRequest.chartRepoUsername,
-						chartDeploymentRequest.chartRepoPassword)
-				)
-			})
+			val httpUsername = chartDeploymentRequest.chartRepoUsername
+			val httpPassword = chartDeploymentRequest.chartRepoPassword
+			if (httpUsername != null && httpPassword != null) {
+				setDefaultCredentialsProvider(BasicCredentialsProvider().apply {
+					val credentials = UsernamePasswordCredentials(httpUsername, httpPassword)
+					setCredentials(AuthScope.ANY, credentials)
+				})
+			}
+		}.build()
+
+
+	private fun publishChart(chartDeploymentRequest: ChartRepositoryDeploymentRequest) {
+		val chartTarGzFile = chartDeploymentRequest.resolveChartTgzFile(project)
+		log.debug(
+			"Uploading $chartTarGzFile to ${chartDeploymentRequest.chartPublishUrl} using " +
+				chartDeploymentRequest.chartPublishMethod
+		)
+
+		createChartRepoClient(chartDeploymentRequest).use { httpClient ->
+			val request = RequestBuilder
+				.create(chartDeploymentRequest.chartPublishMethod)
+				.setUri(chartDeploymentRequest.chartPublishUrl)
+				.setEntity(FileEntity(chartTarGzFile))
+				.build()
+
+			httpClient.execute(request).use { response ->
+				val statusCode = response.statusLine.statusCode
+				check(statusCode in 200..299) {
+					"Unexpected status code when executing ${chartDeploymentRequest.chartPublishMethod} request to " +
+						"chart repo ${chartDeploymentRequest.chartPublishUrl}: $statusCode"
+				}
+				log.info("$chartTarGzFile uploaded successfully")
+			}
 		}
-
-		return clientBuilder.build()
-
 	}
-
 }
 
-data class ChartDeploymentRequest(private val chartName: String?, private val chartVersion: String?,
-								  val chartPublishMethod: String, private val chartRepoUrl: String?,
-								  private val chartPublishUrl: String?, private val chartDeleteUrl: String?,
-								  val chartRepoUsername: String?, val chartRepoPassword: String?,
-								  val skipSnapshots: Boolean, val project: MavenProject) {
+private sealed interface ChartDeploymentRequest {
+	val chartName: String
+	val chartVersion: String
 
-	fun chartName(): String = chartName ?: project.artifactId
+	val chartTgzFileName: String
+		get() = "$chartName-$chartVersion.tgz"
 
-	private fun chartVersion(): String = chartVersion ?: project.version
-
-	fun isSnapshotVersion(): Boolean = chartVersion().endsWith("-SNAPSHOT")
-
-	fun chartPublishUrl(): String = chartPublishUrl ?: "$chartRepoUrl/api/charts"
-
-	fun chartDeleteUrl(): String = chartDeleteUrl ?: "$chartRepoUrl/api/charts/${chartName()}/${chartVersion()}"
-
-	fun chartTarGzFile() = target().resolve("${chartName()}-${chartVersion()}.tgz")
-
-	private fun target() = File(project.build.directory).resolve("helm")
-
+	fun resolveChartTgzFile(project: MavenProject) = File(project.build.directory)
+		.resolve("helm")
+		.resolve(chartTgzFileName)
 }
+
+private data class ChartRepositoryDeploymentRequest(
+	override val chartName: String,
+	override val chartVersion: String,
+	val chartRepoUrl: String,
+	val chartRepoType: Repo.Type,
+	val chartRepoUsername: String?,
+	val chartRepoPassword: String?,
+) : ChartDeploymentRequest {
+	val chartPublishUrl: String
+	val chartPublishMethod: String
+	val chartDeleteUrl: String?
+
+	init {
+		when (chartRepoType) {
+			Repo.Type.CHARTMUSEUM -> {
+				chartPublishMethod = "POST"
+				chartPublishUrl = "$chartRepoUrl/api/charts"
+				chartDeleteUrl = "$chartRepoUrl/api/charts/$chartName/$chartVersion"
+			}
+
+			Repo.Type.ARTIFACTORY -> {
+				chartPublishMethod = "PUT"
+				chartPublishUrl = "$chartRepoUrl/$chartTgzFileName"
+				chartDeleteUrl = null
+			}
+		}
+	}
+}
+
+private data class ChartRegistryDeploymentRequest(
+	override val chartName: String,
+	override val chartVersion: String,
+	val remote: String,
+) : ChartDeploymentRequest

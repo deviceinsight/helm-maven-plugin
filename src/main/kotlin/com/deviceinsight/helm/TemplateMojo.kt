@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter
 import java.io.File
 
 @Mojo(name = "template", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-class TemplateMojo : ResolveHelmMojo() {
+class TemplateMojo : AbstractHelmMojo() {
 
 	/**
 	 * An optional values.yaml file that is used to render the template, relative to `${project.basedir}`.
@@ -37,31 +37,18 @@ class TemplateMojo : ResolveHelmMojo() {
 	@Parameter(property = "outputFile", defaultValue = "\${project.build.directory}/test-classes/helm.yaml")
 	private lateinit var outputFile: String
 
-	@Parameter(property = "helm.skip", defaultValue = "false")
-	private var skip: Boolean = false
-
-	@Throws(MojoExecutionException::class)
-	override fun execute() {
-
-		if (skip) {
-			log.info("helm-template has been skipped")
-			return
-		}
-
+	override fun runMojo() {
 		try {
-
 			if (!isChartFolderPresent()) {
 				log.warn("No sources found, skipping helm template.")
 				return
 			}
 
-			super.execute()
-
 			val command = if (valuesFile != null) {
 				val valuesFilePath = project.basedir.resolve(valuesFile!!).absolutePath
-				listOf(helm, "template", "--values", valuesFilePath, chartName())
+				listOf("template", "--values", valuesFilePath, chartName)
 			} else {
-				listOf(helm, "template", chartName())
+				listOf("template", chartName)
 			}
 
 			var file = File(outputFile)
@@ -73,7 +60,7 @@ class TemplateMojo : ResolveHelmMojo() {
 				file.parentFile.mkdirs()
 			}
 
-			executeCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
+			executeHelmCmd(command, redirectOutput = ProcessBuilder.Redirect.to(file))
 
 			log.info("Rendered helm template to '${file.absolutePath}'")
 

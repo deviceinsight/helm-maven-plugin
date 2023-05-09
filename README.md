@@ -16,13 +16,17 @@ Add the following to your `pom.xml`
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>2.11.1</version>
+      <version>3.0.0</version>
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
-        <helmVersion>3.11.3</helmVersion>
         <strictLint>true</strictLint>
         <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
+        <repos>
+          <repo>
+            <url>https://your-chart-museum-host.example/</url>
+          </repo>
+        </repos>
       </configuration>
       <executions>
         <execution>
@@ -59,42 +63,43 @@ You probably also will adjust the `templates/deployment.yaml` so
 that the correct docker image is used. An example snippet:
 
 ```yaml
-[...]
-      containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}/rubicon:${project.version}"
-[...]
+#[...]
+containers:
+  - name: "{{ .Chart.Name }}"
+    image: "{{ .Values.image.repository }}/rubicon:${project.version}"
+#[...]
 ```
 
 ## Configuration
 
-| Property | Default | Description |
-|---|---|---|
-| chartName | The Maven `artifactId` | The name of the chart |
-| chartVersion | `${project.model.version}` | The version of the chart |
-| chartRepoUrl | `null` | The URL of the Chart repository where dependencies are required from and where charts should be published to |
-| incubatorRepoUrl | `https://charts.helm.sh/incubator` | The URL to the incubator Chart repository |
-| addIncubatorRepo | `true` | Whether the repository defined in `incubatorRepoUrl` should be added when running the package goal |
-| forceAddRepos | `false` | Whether to overwrite the repository configuration when adding a new repository with the same name. This flag is only relevant when using Helm 3 and emulates Helm 2 behavior |
-| chartPublishUrl | `${chartRepoUrl}/api/charts` | The URL that will be used for publishing the chart. The default value will work if `chartRepoUrl` refers to a ChartMuseum. |
-| chartPublishMethod | "POST" | The HTTP method that will be used for publishing requests |
-| chartDeleteUrl | `${chartRepoUrl}/api/charts/${chartName}/${chartVersion}` | The URL that will be used for deleting a previous version of the chart. This is used for updating SNAPSHOT versions. The default value will work if `chartRepoUrl` refers to a ChartMuseum. |
-| chartRepoUsername | None | The username for basic authentication against the chart repo |
-| chartRepoPassword | None | The password for basic authentication against the chart repo |
-| chartRepoServerId | None | The ID of the server definition from the settings.xml server list to obtain the chart repo username/password from. If both chartRepoUsername/chartRepoPassword and chartRepoServerId are specified then the values specified in chartRepoUsername/chartRepoPassword take precedence. |
-| chartFolder | `"src/main/helm/<chartName>"` | The location of the chart files (e.g. Chart.yaml). |
-| skipSnapshots | `true` | If true, SNAPSHOT versions will be built, but not deployed. |
-| helmGroupId | `"com.deviceinsight.helm"` | The helm binary `groupId` |
-| helmArtifactId | `"helm"` | The helm binary `artifactId` |
-| helmVersion | None | The helm binary `version`. (Make sure to use a recent helm binary version that doesn't use the old Helm Chart repositories from `+https://kubernetes-charts.storage.googleapis.com+`, >= 3.4.0 _or_ >= 2.17.0 if you are still using Helm 2) |
-| helmDownloadUrl | `"https://get.helm.sh/"` | The URL where the helm binary is downloaded from. |
-| helm.skip | `false` | If true, execution will be skipped entirely |
-| stableRepoUrl | `"https://charts.helm.sh/stable"` | For helm 2.x: Can be used to overwrite the default URL for stable repository during `helm init` |
-| strictLint | `false` | If true, linting fails on warnings (see: [Lint](#lint)) |
-| valuesFile | None | values file that should be used for goals [Lint](#lint), [Template](#template) |
-| extraValuesFiles | None | a list of additional values files that can be generated dynamically and will be merged with the values.yaml during [Package](#package). |
-| outputFile | target/test-classes/helm.yaml | output file for [template goal](#template) |
-| deployAtEnd | `false` | If true, the helm chart is deployed at the end of a multi-module Maven build. This option does not make sense for single-module Maven projects. |
+| Property                       | Default                         | Description                                                                                                                                                      |
+|--------------------------------|:--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| chartName                      | The Maven `artifactId`          | The name of the chart                                                                                                                                            |
+| chartVersion                   | `${project.model.version}`      | The version of the chart                                                                                                                                         |
+| chartFolder                    | `src/main/helm/<chartName>`     | The location of the chart files (e.g. Chart.yaml)                                                                                                                |
+| helmVersion                    | `3.11.3`                        | The helm binary `version`                                                                                                                                        |
+| helmDownloadUrl                | `https://get.helm.sh/`          | The URL where the helm binary is downloaded from                                                                                                                 |
+| repos.repo[].name              | `chartRepo`                     | The name of the chart repo. You can refer to it via `@chartRepo` in the `requirements.yml` file                                                                  |
+| repos.repo[].type              | `CHARTMUSEUM`                   | The expected repository layout of the chart repo. Can be `CHARTMUSEUM` or `ARTIFACTORY`. This is only relevant when you intend to push charts to this repository |
+| repos.repo[].url               | None                            | The URL of the Chart repository where dependencies are required from and where charts should be published to                                                     |
+| repos.repo[].serverId          | None                            | The maven server id which can be used to populate `username` and `password`                                                                                      |
+| repos.repo[].username          | None                            | The username for basic authentication against the chart repo                                                                                                     |
+| repos.repo[].password          | None                            | The password for basic authentication against the chart repo                                                                                                     |
+| repos.repo[].passCredentials   | `false`                         | Whether to pass credentials to all domains                                                                                                                       |
+| repos.repo[].forceUpdate       | `true`                          | Whether to replace (overwrite) the repo if it already exists                                                                                                     |
+| registries.registry[].url      | None                            | The URL of the OCI chart registry in the format `oci://server-name.example/`                                                                                     |
+| registries.registry[].serverId | None                            | The maven server id which can be used to populate `username` and `password`                                                                                      |
+| registries.registry[].username | None                            | The username for authentication against the registry                                                                                                             |
+| registries.registry[].password | None                            | The password for authentication against the registry                                                                                                             |
+| chartRepoName                  | None                            | Name of the chart repo to deploy the chart to. The name is autodetected if only one repo is specified in the `repos` element                                     |
+| chartRegistryUrl               | None                            | URL of the OCI chat registry to deploy the chart to. The URL is autodetected if only one registry is specified in the `registries` element                       |
+| skipSnapshots                  | `true`                          | If true, SNAPSHOT versions will be built, but not deployed                                                                                                       |
+| skip                           | `false`                         | If true, execution will be skipped entirely                                                                                                                      |
+| strictLint                     | `false`                         | If true, linting fails on warnings (see: [Lint](#lint))                                                                                                          |
+| valuesFile                     | None                            | Values file that should be used for goals [Lint](#lint), [Template](#template)                                                                                   |
+| extraValuesFiles               | None                            | A list of additional values files that can be generated dynamically and will be merged with the values.yaml during [Package](#package)                           |
+| outputFile                     | `target/test-classes/helm.yaml` | Output file for [template goal](#template)                                                                                                                       |
+| deployAtEnd                    | `false`                         | If true, the helm chart is deployed at the end of a multi-module Maven build. This option does not make sense for single-module Maven projects                   |
 
 ## Goals
 
@@ -134,11 +139,14 @@ To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plug
       <version>2.11.1</version>
       <configuration>
         <chartName>my-chart</chartName>
-        <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
-        <helmVersion>3.5.2</helmVersion>
         <strictLint>true</strictLint>
         <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
         <deployAtEnd>true</deployAtEnd>
+        <repos>
+          <repo>
+            <url>https://your-chart-museum-host.example/</url>
+          </repo>
+        </repos>
       </configuration>
       <executions>
         <execution>
@@ -154,29 +162,6 @@ To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plug
   </plugins>
 </build>
 ```
-
-## Troubleshooting
-
-1. _**Problem**_  
-   The following error message is a common source of trouble, lately:
-   ```
-   [ERROR] Output: Error: error initializing: Looks like "https://kubernetes-charts.storage.googleapis.com" is not a valid chart repository or cannot be reached: Failed to fetch https://kubernetes-charts.storage.googleapis.com/index.yaml : 403 Forbidden
-   
-   ...
-   
-   [ERROR] Failed to execute goal com.deviceinsight.helm:helm-maven-plugin:2.11.1:package (default) on project my-project: Error creating helm chart: When executing '/home/user/.m2/repository/com/deviceinsight/helm/helm/2.16.2/helm-2.16.2-linux-amd64.binary init --client-only' got result code '1' -> [Help 1]
-   ```
-   _**Solution**_  
-   This is likely due to an old version of helm itself. Make sure to configure `<helmVersion>` to a version >= 3.4.0 or, if you are still using Helm 2, a version >= 2.17.0 ([background information](https://github.com/helm/charts#%EF%B8%8F-deprecation-and-archive-notice)).
-
-
-2. _**Problem**_  
-   The following error message appears if you use an old version of helm-maven-plugin:
-   ```
-   [ERROR] Output: Error: error initializing: Looks like "https://kubernetes-charts-incubator.storage.googleapis.com" is not a valid chart repository or cannot be reached: Failed to fetch https://kubernetes-charts-incubator.storage.googleapis.com/index.yaml : 403 Forbidden
-   ```
-   _**Solution**_  
-   This can be solved by upgrading helm-maven-plugin itself to version 2.7.0 or later ([#67](https://github.com/deviceinsight/helm-maven-plugin/issues/67)).
 
 ## Releasing
 
