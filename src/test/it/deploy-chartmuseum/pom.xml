@@ -47,7 +47,6 @@
 									<port>chartmuseum.port:8080</port>
 								</ports>
 								<env>
-									<DEBUG>1</DEBUG>
 									<STORAGE>local</STORAGE>
 									<STORAGE_LOCAL_ROOTDIR>/tmp/charts</STORAGE_LOCAL_ROOTDIR>
 								</env>

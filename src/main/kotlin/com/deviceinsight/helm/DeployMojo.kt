@@ -74,7 +74,7 @@ class DeployMojo : AbstractHelmMojo() {
 			} else if (registries.size == 1 && repos.isEmpty()) {
 				chartRegistryUrl = registries.first().url
 			} else if (registries.isEmpty() && repos.isEmpty()) {
-				error("Please configure at least on chart repository of registry")
+				error("Please configure at least one chart repository or registry")
 			} else {
 				error(
 					"It is necessary to specify chartRepoName or chartRegistryUrl explicitly " +

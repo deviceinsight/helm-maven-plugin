@@ -28,11 +28,11 @@ class Registry {
 		require(this::url.isInitialized) { "Registry URL must be set" }
 
 		if (username != null) {
-			check(serverId == null) { "Registry username may not be set when serverId is used" }
+			check(serverId == null) { "Registry username must not be set when serverId is used" }
 		}
 
 		if (password != null) {
-			check(serverId == null) { "Registry password may not be set when serverId is used" }
+			check(serverId == null) { "Registry password must not be set when serverId is used" }
 		}
 
 		if (serverId == null) {

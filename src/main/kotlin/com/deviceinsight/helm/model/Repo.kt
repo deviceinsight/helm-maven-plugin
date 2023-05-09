@@ -32,11 +32,11 @@ class Repo {
 		require(this::url.isInitialized) { "Repo URL must be set" }
 
 		if (username != null) {
-			check(serverId == null) { "Repo username may not be set when serverId is used" }
+			check(serverId == null) { "Repo username must not be set when serverId is used" }
 		}
 
 		if (password != null) {
-			check(serverId == null) { "Repo password may not be set when serverId is used" }
+			check(serverId == null) { "Repo password must not be set when serverId is used" }
 		}
 	}
 
