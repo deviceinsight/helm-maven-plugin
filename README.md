@@ -161,7 +161,7 @@ To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plug
 
 To exclude files from property replacement, you can use the `propertyReplacement` configuration.
 Any `exclusion` matching will exclude the file from property replacement.
-By default glob expressions are used.
+By default, glob expressions are used.
 You can also use regular expressions by prefixing the expression with `regex`. 
 
 ```xml
