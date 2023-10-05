@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+## Version 2.14.0
+
+* Support excluding files from property replacement.
+
 ## Version 2.13.0
 
 * Support escaping placeholders with backslash e.g. `\${MY_ENV_VAR}` will no longer be expanded
