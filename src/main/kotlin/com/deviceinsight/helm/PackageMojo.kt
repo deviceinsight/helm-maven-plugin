@@ -40,7 +40,6 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 
 	companion object {
 		private val PLACEHOLDER_REGEX = Regex("""(\\?)\$\{(.*?)}""")
-		private val SUBSTITUTED_EXTENSIONS = setOf("json", "tpl", "yml", "yaml")
 	}
 
 	@Component(role = SecDispatcher::class, hint = "default")
@@ -78,6 +77,9 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 
 	@Parameter(property = "extraValuesFiles")
 	private val extraValuesFiles: List<String> = emptyList()
+
+	@Parameter(property = "propertyReplacement")
+	private val propertyReplacement = PropertyReplacement()
 
 	@Throws(MojoExecutionException::class)
 	override fun execute() {
@@ -164,7 +166,7 @@ class PackageMojo : ResolveHelmMojo(), ServerAuthentication {
 				parentFile.mkdirs()
 			}
 
-			if (!SUBSTITUTED_EXTENSIONS.contains(file.extension.lowercase())) {
+			if (!propertyReplacement.isPropertyReplacementCandidate(file)) {
 				file.copyTo(targetFile, true)
 				return@onEach
 			}

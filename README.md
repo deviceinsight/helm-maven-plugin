@@ -69,7 +69,7 @@ that the correct docker image is used. An example snippet:
 ## Configuration
 
 | Property | Default | Description |
-|---|---|---|
+|---|--|---|
 | chartName | The Maven `artifactId` | The name of the chart |
 | chartVersion | `${project.model.version}` | The version of the chart |
 | chartRepoUrl | `null` | The URL of the Chart repository where dependencies are required from and where charts should be published to |
@@ -95,6 +95,8 @@ that the correct docker image is used. An example snippet:
 | extraValuesFiles | None | a list of additional values files that can be generated dynamically and will be merged with the values.yaml during [Package](#package). |
 | outputFile | target/test-classes/helm.yaml | output file for [template goal](#template) |
 | deployAtEnd | `false` | If true, the helm chart is deployed at the end of a multi-module Maven build. This option does not make sense for single-module Maven projects. |
+| propertyReplacement | Empty | Structure to configure property replacement performed on the chart files |
+| propertyReplacement.exclusions | Empty | List of file extensions that should be excluded from property replacement. The expressions are by default glob expressions |
 
 ## Goals
 
@@ -131,14 +133,57 @@ To use the `deployAtEnd` functionality it's mandatory to put the Helm Maven Plug
     <plugin>
       <groupId>com.deviceinsight.helm</groupId>
       <artifactId>helm-maven-plugin</artifactId>
-      <version>2.11.1</version>
+      <version>2.14.0</version>
       <configuration>
         <chartName>my-chart</chartName>
         <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
-        <helmVersion>3.5.2</helmVersion>
+        <helmVersion>3.13.0</helmVersion>
         <strictLint>true</strictLint>
         <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
         <deployAtEnd>true</deployAtEnd>
+      </configuration>
+      <executions>
+        <execution>
+          <goals>
+            <goal>package</goal>
+            <goal>lint</goal>
+            <goal>template</goal>
+            <goal>deploy</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
+### Exclude files from property replacement
+
+To exclude files from property replacement, you can use the `propertyReplacement` configuration.
+Any `exclusion` matching will exclude the file from property replacement.
+By default, glob expressions are used.
+You can also use regular expressions by prefixing the expression with `regex`. 
+
+```xml
+<build>
+  <plugins>
+    ...
+    <plugin>
+      <groupId>com.deviceinsight.helm</groupId>
+      <artifactId>helm-maven-plugin</artifactId>
+      <version>2.14.0</version>
+      <configuration>
+        <chartName>my-chart</chartName>
+        <chartRepoUrl>https://charts.helm.sh/stable</chartRepoUrl>
+        <helmVersion>3.13.0</helmVersion>
+        <strictLint>true</strictLint>
+        <valuesFile>src/test/helm/my-chart/values.yaml</valuesFile>
+        <propertyReplacement>
+            <exclusions>
+                <exclusion>**/grafana-dashboards/**/*.json</exclusion>
+                <exclusion>regex:.*/grafana-dashboards/.*\.json</exclusion>
+            </exclusions>
+        </propertyReplacement>
       </configuration>
       <executions>
         <execution>
