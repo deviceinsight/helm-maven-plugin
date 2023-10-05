@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## Version 2.14.0
+
 * Support excluding files from property replacement.
 
 ## Version 2.13.0
