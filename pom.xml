@@ -21,7 +21,7 @@
 		<maven.version>3.9.0</maven.version>
 		<maven-project.version>2.2.1</maven-project.version>
 
-		<jackson-bom.version>2.15.2</jackson-bom.version>
+		<jackson-bom.version>2.15.3</jackson-bom.version>
 		<httpclient.version>4.5.14</httpclient.version>
 		<plexus-sec-dispatcher.version>1.4</plexus-sec-dispatcher.version>
 
