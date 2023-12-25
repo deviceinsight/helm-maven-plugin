@@ -29,7 +29,7 @@
 		<assertj-core.version>3.24.2</assertj-core.version>
 
 		<dokka-maven-plugin.version>1.9.10</dokka-maven-plugin.version>
-		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+		<maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
 		<maven-source-plugin.version>3.3.0</maven-source-plugin.version>
 		<gitflow-maven-plugin.version>1.20.0</gitflow-maven-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
