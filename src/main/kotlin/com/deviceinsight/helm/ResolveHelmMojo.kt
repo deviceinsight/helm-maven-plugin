@@ -17,15 +17,17 @@
 package com.deviceinsight.helm
 
 import com.deviceinsight.helm.util.PlatformDetector
-import org.apache.maven.artifact.Artifact
-import org.apache.maven.artifact.repository.ArtifactRepository
-import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult
 import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
-import org.apache.maven.repository.RepositorySystem
+import org.eclipse.aether.RepositorySystem
+import org.eclipse.aether.RepositorySystemSession
+import org.eclipse.aether.artifact.Artifact
+import org.eclipse.aether.artifact.DefaultArtifact
+import org.eclipse.aether.repository.RemoteRepository
+import org.eclipse.aether.resolution.ArtifactRequest
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
@@ -51,52 +53,66 @@ open class ResolveHelmMojo : AbstractHelmMojo() {
 	@Parameter(property = "helmDownloadUrl", defaultValue = "https://get.helm.sh/")
 	private lateinit var helmDownloadUrl: URI
 
-	@Parameter(readonly = true, required = true, defaultValue = "\${localRepository}")
-	private lateinit var localRepository: ArtifactRepository
+	@Parameter(readonly = true, required = true, defaultValue = "\${repositorySystemSession}")
+	private lateinit var repositorySession: RepositorySystemSession
 
-	@Parameter(readonly = true, required = true, defaultValue = "\${project.remoteArtifactRepositories}")
-	private lateinit var remoteRepositories: List<ArtifactRepository>
+	@Parameter(readonly = true, required = true, defaultValue = "\${project.remoteProjectRepositories}")
+	private lateinit var remoteRepositories: List<RemoteRepository>
 
 	@Component
 	private lateinit var repositorySystem: RepositorySystem
 
-	protected lateinit var helm : String
+	protected lateinit var helm: String
 
 	protected fun resolveHelmBinary(): String {
 
 		val platformIdentifier = PlatformDetector.detectHelmReleasePlatformIdentifier()
-		val helmArtifact: Artifact =
-			repositorySystem.createArtifactWithClassifier(helmGroupId, helmArtifactId, helmVersion, "binary",
-				platformIdentifier)
+		val helmArtifact: Artifact = DefaultArtifact(helmGroupId, helmArtifactId, platformIdentifier, "binary", helmVersion)
 
-		val request = ArtifactResolutionRequest()
-		request.artifact = helmArtifact
-		request.isResolveTransitively = false
-		request.localRepository = localRepository
-		request.remoteRepositories = remoteRepositories
+		var resolvedArtifact = findArtifact(helmArtifact)
 
-		val resolutionResult: ArtifactResolutionResult = repositorySystem.resolve(request)
-
-		if (!resolutionResult.isSuccess) {
+		if (resolvedArtifact == null) {
 			log.info("Artifact not found in remote repositories")
-			downloadAndInstallHelm(helmArtifact, platformIdentifier)
+			resolvedArtifact = downloadAndInstallHelm(helmArtifact, platformIdentifier)
 		}
 
-		helmArtifact.file.setExecutable(true)
+		resolvedArtifact.file.setExecutable(true)
 
-		return helmArtifact.file.absolutePath
+		return resolvedArtifact.file.absolutePath
 	}
 
-	private fun downloadAndInstallHelm(artifact: Artifact, platformIdentifier: String) {
+	private fun findArtifact(helmArtifact: Artifact): Artifact? {
+
+		try {
+			val request = ArtifactRequest()
+			request.setArtifact(helmArtifact)
+			request.setRepositories(remoteRepositories)
+			val resolutionResult = repositorySystem.resolveArtifact(repositorySession, request)
+
+			return if (resolutionResult.isResolved) {
+				resolutionResult.artifact
+			} else {
+				null
+			}
+
+		} catch (e: Exception) {
+			log.debug("failed to resolve artifact: ${e.message}")
+			return null
+		}
+	}
+
+	private fun downloadAndInstallHelm(artifact: Artifact, platformIdentifier: String): Artifact {
 
 		val fileName = "helm-v$helmVersion-$platformIdentifier"
 
-		val targetFile = artifact.file.toPath()
+		val artifactPath = repositorySession.localRepositoryManager.getPathForLocalArtifact(artifact)
+		val targetFile = File(repositorySession.localRepository.basedir, artifactPath).toPath()
 		Files.createDirectories(targetFile.parent)
 
 		val url = helmDownloadUrl.resolve("./$fileName.zip").toURL()
 
 		downloadFileAndExtractBinary(url, targetFile)
+		return artifact.setFile(targetFile.toFile())
 	}
 
 	private fun downloadFileAndExtractBinary(url: URL, destination: Path) {
